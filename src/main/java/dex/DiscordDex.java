@@ -9,6 +9,8 @@ import dex.discord.handler.TypeHandler;
 import dex.pokemon.PokemonCache;
 import me.sargunvohra.lib.pokekotlin.client.PokeApi;
 import me.sargunvohra.lib.pokekotlin.client.PokeApiClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.util.DiscordException;
@@ -17,6 +19,8 @@ import java.util.Map;
 
 public class DiscordDex
 {
+    private static final Logger LOG = LoggerFactory.getLogger(DiscordDex.class);
+
     // Configure Discord access
     private static final String DEX_BOT_TOKEN = "MjM3NDI1MDE1MzI1MzI3MzYw.CuXe4g.-i6VEkVCeOdeEHJk7FIuUOS2oBc";
 
@@ -35,7 +39,7 @@ public class DiscordDex
     public static void main(final String[] args) {
         try {
             final IDiscordClient client = getClient(DEX_BOT_TOKEN, true);
-            System.out.println(String.format("Got client for token %s!", DEX_BOT_TOKEN));
+            LOG.info("Got client with token: {}", DEX_BOT_TOKEN);
             client.getDispatcher().registerListener(DEX_LISTENER);
         } catch (DiscordException e) {
             throw new RuntimeException("Couldn't get a Discord client!", e);

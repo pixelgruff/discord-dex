@@ -3,6 +3,8 @@ package dex.discord;
 import com.google.common.base.Joiner;
 import dex.discord.handler.Handler;
 import dex.util.ParsingUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sx.blah.discord.api.events.IListener;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 
@@ -16,6 +18,8 @@ import java.util.regex.Pattern;
  */
 public class DexListener implements IListener<MessageReceivedEvent>
 {
+    private static final Logger LOG = LoggerFactory.getLogger(DexListener.class);
+
     // Construct command-matching regex
     private static final Joiner PIPE_JOINER = Joiner.on("|");
     // Matches commands in the format: /command
@@ -35,17 +39,14 @@ public class DexListener implements IListener<MessageReceivedEvent>
     @Override
     public void handle(final MessageReceivedEvent event)
     {
-        System.out.println("Received message with content: " + event.getMessage().getContent());
-
-        final String sanitizedMessage = ParsingUtils.sanitizeMessageContent(event.getMessage().getContent());
+        final String originalMessage = event.getMessage().getContent();
+        final String sanitizedMessage = ParsingUtils.sanitizeMessageContent(originalMessage);
         final Optional<DexCommand> maybeCommand = parseCommand(sanitizedMessage);
         if (maybeCommand.isPresent()) {
-            System.out.println("Mapped input to command: " + maybeCommand.get());
+            LOG.info("Mapped input {} to command: {}", originalMessage, maybeCommand.get());
             final Handler responder = responses_.get(maybeCommand.get());
             // Try to run whatever handler we've been configured with
             responder.safelyRespond(event);
-        } else {
-            System.out.println("No command found for input after parsing: " + sanitizedMessage);
         }
     }
 
@@ -72,8 +73,7 @@ public class DexListener implements IListener<MessageReceivedEvent>
             final String commandWord = ParsingUtils.getCommandWord(command);
             return Optional.of(DexCommand.valueOf(commandWord));
         } catch (IllegalArgumentException e) {
-            System.err.println(String.format("Could not match command %s to any commands in %s",
-                    command, Arrays.toString(DexCommand.values())));
+            LOG.info("Could not match command {} to any commands in {}", command, Arrays.toString(DexCommand.values()));
             return Optional.empty();
         }
     }

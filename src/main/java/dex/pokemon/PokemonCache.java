@@ -8,6 +8,8 @@ import me.sargunvohra.lib.pokekotlin.client.PokeApi;
 import me.sargunvohra.lib.pokekotlin.model.NamedApiResource;
 import me.sargunvohra.lib.pokekotlin.model.NamedApiResourceList;
 import me.sargunvohra.lib.pokekotlin.model.Pokemon;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -17,6 +19,8 @@ import java.util.concurrent.TimeUnit;
  * Gotta cache 'em all
  */
 public class PokemonCache {
+    private static final Logger LOG = LoggerFactory.getLogger(PokemonCache.class);
+
     private static final int BATCH_SIZE = 100;
 
     private final PokeApi client_;
@@ -38,6 +42,7 @@ public class PokemonCache {
 
     public static PokemonCache initializeCache(final PokeApi client)
     {
+        LOG.info("Populating Pokemon cache with {}-size batches.", BATCH_SIZE);
         // Populate the cache with Pokemon entries
         final ImmutableMap.Builder<String, Integer> idMapBuilder = ImmutableMap.builder();
 
@@ -50,18 +55,13 @@ public class PokemonCache {
             }
             offset += BATCH_SIZE;
 
-            System.out.println(String.format("Cached %d id-name pairs (%d - %d).", resourceList.getResults().size(),
-                    offset, offset + BATCH_SIZE));
-
             if (resourceList.getNext() == null) {
                 break;
             }
         }
 
         final ImmutableMap<String, Integer> cache = idMapBuilder.build();
-        System.out.println(String.format(
-                "Reached the end of the resources listed under http://pokeapi.co/api/v2/pokemon (%d total).",
-                cache.size()));
+        LOG.info("Iterated over all resources at http://pokeapi.co/api/v2/pokemon ({} total).", cache.size());
 
         return new PokemonCache(client, cache);
     }

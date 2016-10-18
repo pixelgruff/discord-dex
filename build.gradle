@@ -26,4 +26,9 @@ dependencies {
 
     // Guava (https://github.com/google/guava/wiki/UseGuavaInYourBuild)
     compile group: 'com.google.guava', name: 'guava', version: '19.0'
+
+    // https://logging.apache.org/log4j/2.x/maven-artifacts.html
+    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.7'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.7'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.7'
 }
