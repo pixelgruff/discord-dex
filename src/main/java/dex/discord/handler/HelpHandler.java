@@ -59,8 +59,8 @@ public class HelpHandler extends Handler
             case type:
                 return "usage: !type [pokemon name]\n" +
                         "Example: !type Sneasel";
+            default:
+                return String.format("No help text defined for %s!  *Someone* has work to do.", command.name());
         }
-
-        throw new AssertionError(String.format("No help handler configured for command %s!", command));
     }
 }

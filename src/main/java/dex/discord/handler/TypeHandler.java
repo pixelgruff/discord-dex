@@ -33,14 +33,14 @@ public class TypeHandler extends Handler
         if (arguments.isEmpty()) {
             reply = HelpHandler.helpResponse(DexCommand.type);
         } else {
-            // TODO: name-to-id mapping
-            // TODO: caching
             final String pokemonName = arguments.get(0);
             final Optional<Pokemon> maybePokemon = pokemonCache_.getPokemon(pokemonName);
 
             if (maybePokemon.isPresent()) {
                 final Pokemon pokemon = maybePokemon.get();
-                reply = PrintingUtils.prettifiedTypes(pokemon.getTypes());
+                reply = String.format("%s has the following types: %s",
+                        PrintingUtils.prettifiedName(pokemon.getName()),
+                        PrintingUtils.prettifiedTypes(pokemon.getTypes()));
             } else {
                 reply = String.format("no Pokedex entry found for Pokemon: %s", pokemonName);
             }
