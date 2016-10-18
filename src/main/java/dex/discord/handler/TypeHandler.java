@@ -1,7 +1,7 @@
-package dex.discord.response;
+package dex.discord.handler;
 
 import dex.discord.DexCommand;
-import dex.pokemon.PokedexCache;
+import dex.pokemon.PokemonCache;
 import dex.util.ParsingUtils;
 import dex.util.PrintingUtils;
 import me.sargunvohra.lib.pokekotlin.model.Pokemon;
@@ -16,12 +16,12 @@ import java.util.Optional;
 /**
  * Provide information about a Pokemon's type
  */
-public class TypeResponder extends PokemonResponder
+public class TypeHandler extends Handler
 {
-    private final PokedexCache pokedexCache_;
+    private final PokemonCache pokemonCache_;
 
-    public TypeResponder(final PokedexCache pokedexCache) {
-        pokedexCache_ = pokedexCache;
+    public TypeHandler(final PokemonCache pokemonCache) {
+        pokemonCache_ = pokemonCache;
     }
 
     @Override
@@ -31,12 +31,12 @@ public class TypeResponder extends PokemonResponder
 
         final String reply;
         if (arguments.isEmpty()) {
-            reply = HelpResponder.helpResponse(DexCommand.type);
+            reply = HelpHandler.helpResponse(DexCommand.type);
         } else {
             // TODO: name-to-id mapping
             // TODO: caching
             final String pokemonName = arguments.get(0);
-            final Optional<Pokemon> maybePokemon = pokedexCache_.getPokemon(pokemonName);
+            final Optional<Pokemon> maybePokemon = pokemonCache_.getPokemon(pokemonName);
 
             if (maybePokemon.isPresent()) {
                 final Pokemon pokemon = maybePokemon.get();

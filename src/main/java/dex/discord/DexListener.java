@@ -1,7 +1,7 @@
 package dex.discord;
 
 import com.google.common.base.Joiner;
-import dex.discord.response.PokemonResponder;
+import dex.discord.handler.Handler;
 import dex.util.ParsingUtils;
 import sx.blah.discord.api.events.IListener;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
@@ -9,7 +9,6 @@ import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 /**
@@ -25,11 +24,10 @@ public class DexListener implements IListener<MessageReceivedEvent>
             PIPE_JOINER.join(DexCommand.values())
     );
     private static final Pattern COMMAND_MATCHER = Pattern.compile(COMMAND_PATTERN);
-    private static Predicate<String> IS_COMMAND = message -> COMMAND_MATCHER.matcher(message).matches();
 
-    private final Map<DexCommand, PokemonResponder> responses_;
+    private final Map<DexCommand, Handler> responses_;
 
-    public DexListener(final Map<DexCommand, PokemonResponder> responses)
+    public DexListener(final Map<DexCommand, Handler> responses)
     {
         responses_ = responses;
     }
@@ -43,8 +41,8 @@ public class DexListener implements IListener<MessageReceivedEvent>
         final Optional<DexCommand> maybeCommand = parseCommand(sanitizedMessage);
         if (maybeCommand.isPresent()) {
             System.out.println("Mapped input to command: " + maybeCommand.get());
-            final PokemonResponder responder = responses_.get(maybeCommand.get());
-            // Try to run whatever response we've been configured with
+            final Handler responder = responses_.get(maybeCommand.get());
+            // Try to run whatever handler we've been configured with
             responder.safelyRespond(event);
         } else {
             System.out.println("No command found for input after parsing: " + sanitizedMessage);
@@ -65,7 +63,7 @@ public class DexListener implements IListener<MessageReceivedEvent>
 
         final String command = maybeCommand.get();
         // Short-circuit fail on messages that aren't commands
-        if (!IS_COMMAND.test(command)) {
+        if (!isCommand(command)) {
             return Optional.empty();
         }
 
@@ -78,5 +76,10 @@ public class DexListener implements IListener<MessageReceivedEvent>
                     command, Arrays.toString(DexCommand.values())));
             return Optional.empty();
         }
+    }
+
+    private static boolean isCommand(final String message)
+    {
+        return COMMAND_MATCHER.matcher(message).matches();
     }
 }

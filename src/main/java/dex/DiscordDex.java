@@ -3,10 +3,10 @@ package dex;
 import com.google.common.collect.ImmutableMap;
 import dex.discord.DexCommand;
 import dex.discord.DexListener;
-import dex.discord.response.HelpResponder;
-import dex.discord.response.PokemonResponder;
-import dex.discord.response.TypeResponder;
-import dex.pokemon.PokedexCache;
+import dex.discord.handler.HelpHandler;
+import dex.discord.handler.Handler;
+import dex.discord.handler.TypeHandler;
+import dex.pokemon.PokemonCache;
 import me.sargunvohra.lib.pokekotlin.client.PokeApi;
 import me.sargunvohra.lib.pokekotlin.client.PokeApiClient;
 import sx.blah.discord.api.ClientBuilder;
@@ -22,13 +22,13 @@ public class DiscordDex
 
     // Configure Pokemon API access
     private static final PokeApi POKEMON_CLIENT = new PokeApiClient();
-    private static final PokedexCache POKEDEX_CACHE = PokedexCache.initializeCache(POKEMON_CLIENT);
+    private static final PokemonCache POKEDEX_CACHE = PokemonCache.initializeCache(POKEMON_CLIENT);
 
     // Wire up bot logic
-    private static final Map<DexCommand, PokemonResponder> COMMAND_RESPONSES =
-            ImmutableMap.<DexCommand, PokemonResponder>builder()
-                    .put(DexCommand.help, new HelpResponder())
-                    .put(DexCommand.type, new TypeResponder(POKEDEX_CACHE))
+    private static final Map<DexCommand, Handler> COMMAND_RESPONSES =
+            ImmutableMap.<DexCommand, Handler>builder()
+                    .put(DexCommand.help, new HelpHandler())
+                    .put(DexCommand.type, new TypeHandler(POKEDEX_CACHE))
                     .build();
     private static final DexListener DEX_LISTENER = new DexListener(COMMAND_RESPONSES);
 

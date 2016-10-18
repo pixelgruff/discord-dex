@@ -1,11 +1,11 @@
-package dex.discord.response;
+package dex.discord.handler;
 
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
 
-public abstract class PokemonResponder
+public abstract class Handler
 {
     /**
      * Respond, catching any exceptions safely

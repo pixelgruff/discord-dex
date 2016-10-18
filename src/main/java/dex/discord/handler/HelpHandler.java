@@ -1,4 +1,4 @@
-package dex.discord.response;
+package dex.discord.handler;
 
 import com.google.common.base.Joiner;
 import dex.discord.DexCommand;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 /**
  * Send the 'help' dialog
  */
-public class HelpResponder extends PokemonResponder
+public class HelpHandler extends Handler
 {
     private static final Joiner COMMA_JOINER = Joiner.on(", ");
     private static final Joiner NEWLINE_JOINER = Joiner.on("\n");
@@ -49,7 +49,7 @@ public class HelpResponder extends PokemonResponder
     }
 
     /**
-     * Provide a helpful response string for each {@link DexCommand}
+     * Provide a helpful handler string for each {@link DexCommand}
      */
     public static String helpResponse(final DexCommand command)
     {
@@ -61,6 +61,6 @@ public class HelpResponder extends PokemonResponder
                         "Example: !type Sneasel";
         }
 
-        throw new AssertionError(String.format("No help response configured for command %s!", command));
+        throw new AssertionError(String.format("No help handler configured for command %s!", command));
     }
 }

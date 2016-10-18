@@ -14,9 +14,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Cache all the things
+ * Gotta cache 'em all
  */
-public class PokedexCache {
+public class PokemonCache {
     private static final int BATCH_SIZE = 100;
 
     private final PokeApi client_;
@@ -30,13 +30,13 @@ public class PokedexCache {
                 }
             });
 
-    private PokedexCache(final PokeApi client, final ImmutableMap<String, Integer> idMap)
+    private PokemonCache(final PokeApi client, final ImmutableMap<String, Integer> idMap)
     {
         client_ = client;
         idMap_ = idMap;
     }
 
-    public static PokedexCache initializeCache(final PokeApi client)
+    public static PokemonCache initializeCache(final PokeApi client)
     {
         // Populate the cache with Pokemon entries
         final ImmutableMap.Builder<String, Integer> idMapBuilder = ImmutableMap.builder();
@@ -63,7 +63,7 @@ public class PokedexCache {
                 "Reached the end of the resources listed under http://pokeapi.co/api/v2/pokemon (%d total).",
                 cache.size()));
 
-        return new PokedexCache(client, cache);
+        return new PokemonCache(client, cache);
     }
 
     public Optional<Pokemon> getPokemon(final String name)
