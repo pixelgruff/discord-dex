@@ -43,7 +43,7 @@ public class TypeHandler extends Handler
             if (maybePokemon.isPresent()) {
                 final Pokemon pokemon = maybePokemon.get();
                 reply = String.format("%s has the following types: %s",
-                        PrintingUtils.prettifiedName(pokemon.getName()),
+                        PrintingUtils.properNoun(pokemon.getName()),
                         PrintingUtils.prettifiedTypes(pokemon.getTypes()));
             } else {
                 reply = String.format("no Pokedex entry found for Pokemon: %s", pokemonName);
