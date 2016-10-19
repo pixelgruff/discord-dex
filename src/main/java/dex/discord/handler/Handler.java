@@ -1,5 +1,7 @@
 package dex.discord.handler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
@@ -7,6 +9,7 @@ import sx.blah.discord.util.RateLimitException;
 
 public abstract class Handler
 {
+    private static final Logger LOG = LoggerFactory.getLogger(Handler.class);
     /**
      * Respond, catching any exceptions safely
      * @param event
@@ -18,9 +21,7 @@ public abstract class Handler
         }
         // Gotta catch 'em all
         catch (Exception e) {
-            // TODO: Fix Log4J to get better error reporting
-            System.err.println(String.format("Was not able to respond to message \"%s\"; experienced exception %s!",
-                    event.getMessage().getContent(), e.getMessage()));
+            LOG.error("Was not able to respond to message \"{}\"!", event.getMessage().getContent(), e);
         }
     }
 

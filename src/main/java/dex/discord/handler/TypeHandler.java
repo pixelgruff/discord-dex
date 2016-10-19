@@ -1,10 +1,11 @@
 package dex.discord.handler;
 
 import dex.discord.DexCommand;
-import dex.pokemon.PokemonCache;
+import dex.pokemon.NamedCache;
 import dex.util.ParsingUtils;
 import dex.util.PrintingUtils;
 import me.sargunvohra.lib.pokekotlin.model.Pokemon;
+import org.apache.commons.lang3.Validate;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
@@ -18,14 +19,17 @@ import java.util.Optional;
  */
 public class TypeHandler extends Handler
 {
-    private final PokemonCache pokemonCache_;
+    private final NamedCache<Pokemon> pokemonCache_;
 
-    public TypeHandler(final PokemonCache pokemonCache) {
+    public TypeHandler(final NamedCache<Pokemon> pokemonCache)
+    {
+        Validate.notNull(pokemonCache);
         pokemonCache_ = pokemonCache;
     }
 
     @Override
-    void respond(MessageReceivedEvent event) throws MissingPermissionsException, RateLimitException, DiscordException {
+    void respond(MessageReceivedEvent event) throws MissingPermissionsException, RateLimitException, DiscordException
+    {
         final String message = event.getMessage().getContent();
         final List<String> arguments = ParsingUtils.parseArguments(message);
 
@@ -34,7 +38,7 @@ public class TypeHandler extends Handler
             reply = HelpHandler.helpResponse(DexCommand.type);
         } else {
             final String pokemonName = arguments.get(0);
-            final Optional<Pokemon> maybePokemon = pokemonCache_.getPokemon(pokemonName);
+            final Optional<Pokemon> maybePokemon = pokemonCache_.get(pokemonName);
 
             if (maybePokemon.isPresent()) {
                 final Pokemon pokemon = maybePokemon.get();

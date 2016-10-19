@@ -24,7 +24,8 @@ public class PaginatedNamedResourceList implements Iterable<NamedApiResource> {
     }
 
     @Override
-    public Iterator<NamedApiResource> iterator() {
+    public Iterator<NamedApiResource> iterator()
+    {
         return iterator_;
     }
 }
