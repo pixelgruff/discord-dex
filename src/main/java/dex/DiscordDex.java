@@ -5,10 +5,13 @@ import dex.discord.DexCommand;
 import dex.discord.DexListener;
 import dex.discord.handler.HelpHandler;
 import dex.discord.handler.Handler;
+import dex.discord.handler.NatureHandler;
 import dex.discord.handler.TypeHandler;
-import dex.pokemon.PokemonCache;
+import dex.pokemon.NamedCache;
 import me.sargunvohra.lib.pokekotlin.client.PokeApi;
 import me.sargunvohra.lib.pokekotlin.client.PokeApiClient;
+import me.sargunvohra.lib.pokekotlin.model.Nature;
+import me.sargunvohra.lib.pokekotlin.model.Pokemon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sx.blah.discord.api.ClientBuilder;
@@ -26,17 +29,22 @@ public class DiscordDex
 
     // Configure Pokemon API access
     private static final PokeApi POKEMON_CLIENT = new PokeApiClient();
-    private static final PokemonCache POKEDEX_CACHE = PokemonCache.initializeCache(POKEMON_CLIENT);
+    private static final NamedCache<Pokemon> POKEMON_CACHE = NamedCache.initializeCache(POKEMON_CLIENT::getPokemonList,
+            POKEMON_CLIENT::getPokemon);
+    private static final NamedCache<Nature> NATURE_CACHE = NamedCache.initializeCache(POKEMON_CLIENT::getNatureList,
+            POKEMON_CLIENT::getNature);
 
     // Wire up bot logic
     private static final Map<DexCommand, Handler> COMMAND_RESPONSES =
             ImmutableMap.<DexCommand, Handler>builder()
                     .put(DexCommand.help, new HelpHandler())
-                    .put(DexCommand.type, new TypeHandler(POKEDEX_CACHE))
+                    .put(DexCommand.type, new TypeHandler(POKEMON_CACHE))
+                    .put(DexCommand.nature, new NatureHandler(NATURE_CACHE))
                     .build();
     private static final DexListener DEX_LISTENER = new DexListener(COMMAND_RESPONSES);
 
     public static void main(final String[] args) {
+        LOG.info("discord-dex is starting up...");
         try {
             final IDiscordClient client = getClient(DEX_BOT_TOKEN, true);
             LOG.info("Got client with token: {}", DEX_BOT_TOKEN);

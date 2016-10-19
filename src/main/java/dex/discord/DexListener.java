@@ -3,6 +3,7 @@ package dex.discord;
 import com.google.common.base.Joiner;
 import dex.discord.handler.Handler;
 import dex.util.ParsingUtils;
+import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sx.blah.discord.api.events.IListener;
@@ -43,9 +44,12 @@ public class DexListener implements IListener<MessageReceivedEvent>
         final String sanitizedMessage = ParsingUtils.sanitizeMessageContent(originalMessage);
         final Optional<DexCommand> maybeCommand = parseCommand(sanitizedMessage);
         if (maybeCommand.isPresent()) {
-            LOG.info("Mapped input {} to command: {}", originalMessage, maybeCommand.get());
-            final Handler responder = responses_.get(maybeCommand.get());
+            final DexCommand command = maybeCommand.get();
+            LOG.info("Mapped input {} to command: {}", originalMessage, command);
+
             // Try to run whatever handler we've been configured with
+            final Handler responder = responses_.get(command);
+            Validate.notNull(responder, String.format("Could not find a handler for command %s!", command));
             responder.safelyRespond(event);
         }
     }

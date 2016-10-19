@@ -12,7 +12,12 @@ public class PrintingUtils
 {
     private static final Joiner COMMA_JOINER = Joiner.on(", ");
 
-    public static String prettifiedName(final String name)
+    public static String properNoun(final String noun)
+    {
+        return String.format("**%s**", firstUppercase(noun));
+    }
+
+    public static String firstUppercase(final String name)
     {
         if (name.length() <= 1) {
             return name.toUpperCase();
