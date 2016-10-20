@@ -41,6 +41,7 @@ public class NamedCache<T> {
             .build(new CacheLoader<Integer, T>() {
                 @Override
                 public T load(@NotNull Integer key) throws Exception {
+                    // TODO: Move retrying into the client, not the cache itself
                     return retryer_.call(() -> valueProducer_.apply(key));
                 }
             });

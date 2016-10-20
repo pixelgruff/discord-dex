@@ -8,7 +8,7 @@ import java.util.Optional;
 public enum DexCommand
 {
     help,
-    type,
+    dex,
     nature;
 
     public static Optional<DexCommand> optionalValueOf(final String name)

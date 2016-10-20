@@ -3,15 +3,12 @@ package dex;
 import com.google.common.collect.ImmutableMap;
 import dex.discord.DexCommand;
 import dex.discord.DexListener;
-import dex.discord.handler.HelpHandler;
-import dex.discord.handler.Handler;
-import dex.discord.handler.NatureHandler;
-import dex.discord.handler.TypeHandler;
+import dex.discord.handler.*;
+import dex.pokemon.DynamicPokeApi;
 import dex.pokemon.NamedCache;
 import me.sargunvohra.lib.pokekotlin.client.PokeApi;
 import me.sargunvohra.lib.pokekotlin.client.PokeApiClient;
 import me.sargunvohra.lib.pokekotlin.model.Nature;
-import me.sargunvohra.lib.pokekotlin.model.Pokemon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sx.blah.discord.api.ClientBuilder;
@@ -28,9 +25,10 @@ public class DiscordDex
     private static final String DEX_BOT_TOKEN = "MjM3NDI1MDE1MzI1MzI3MzYw.CuXe4g.-i6VEkVCeOdeEHJk7FIuUOS2oBc";
 
     // Configure Pokemon API access
+    // TODO: Create a thread-safe, cache-backed retry-configured client
     private static final PokeApi POKEMON_CLIENT = new PokeApiClient();
-    private static final NamedCache<Pokemon> POKEMON_CACHE = NamedCache.initializeCache(POKEMON_CLIENT::getPokemonList,
-            POKEMON_CLIENT::getPokemon);
+    private static final DynamicPokeApi DYNAMIC_CLIENT = DynamicPokeApi.wrap(POKEMON_CLIENT);
+    // TODO: Move cache initialization to somewhere in main()
     private static final NamedCache<Nature> NATURE_CACHE = NamedCache.initializeCache(POKEMON_CLIENT::getNatureList,
             POKEMON_CLIENT::getNature);
 
@@ -38,8 +36,8 @@ public class DiscordDex
     private static final Map<DexCommand, Handler> COMMAND_RESPONSES =
             ImmutableMap.<DexCommand, Handler>builder()
                     .put(DexCommand.help, new HelpHandler())
-                    .put(DexCommand.type, new TypeHandler(POKEMON_CACHE))
                     .put(DexCommand.nature, new NatureHandler(NATURE_CACHE))
+                    .put(DexCommand.dex, new DexHandler(DYNAMIC_CLIENT))
                     .build();
     private static final DexListener DEX_LISTENER = new DexListener(COMMAND_RESPONSES);
 

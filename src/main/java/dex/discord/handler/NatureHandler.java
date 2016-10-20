@@ -28,6 +28,7 @@ public class NatureHandler extends Handler {
     {
         final String message = event.getMessage().getContent();
         final List<String> arguments = ParsingUtils.parseArguments(message);
+        // TODO: Help text for bad messages
         Validate.notEmpty(arguments, "No arguments found for 'nature' command!");
 
         final String name = arguments.get(0);

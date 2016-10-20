@@ -56,12 +56,12 @@ public class HelpHandler extends Handler
         switch (command) {
             case help:
                 return "please do not ask for help with the help command; it is wasteful, and impolite.";
-            case type:
-                return "usage: !type [pokemon name]\n" +
-                        "Example: !type Sneasel";
             case nature:
                 return "usage: !nature [nature name]\n" +
                         "Example: !nature Jolly";
+            case dex:
+                return "usage: !dex [pokemon name]\n" +
+                        "Example: !dex Sneasel";
             default:
                 return String.format("No help text defined for %s!  *Someone* has work to do.", command.name());
         }

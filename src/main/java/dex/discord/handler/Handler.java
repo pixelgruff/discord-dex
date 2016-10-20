@@ -9,7 +9,7 @@ import sx.blah.discord.util.RateLimitException;
 
 public abstract class Handler
 {
-    private static final Logger LOG = LoggerFactory.getLogger(Handler.class);
+    protected static final Logger LOG = LoggerFactory.getLogger(Handler.class);
     /**
      * Respond, catching any exceptions safely
      * @param event
