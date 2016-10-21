@@ -2,7 +2,7 @@ package dex.util;
 
 import java.util.function.Supplier;
 
-public class ExceptionUtils
+public class ThrowableUtils
 {
     public static Supplier<RuntimeException> fail(final String message)
     {
@@ -12,5 +12,15 @@ public class ExceptionUtils
     public static Supplier<RuntimeException> fail(final String message, final Object... values)
     {
         return () -> new RuntimeException(String.format(message, values));
+    }
+
+    public static RuntimeException toUnchecked(final Throwable e)
+    {
+        return new RuntimeException(e);
+    }
+
+    public static RuntimeException toUnchecked(final String cause, final Throwable e)
+    {
+        return new RuntimeException(cause, e);
     }
 }

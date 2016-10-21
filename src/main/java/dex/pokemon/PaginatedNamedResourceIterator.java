@@ -15,13 +15,8 @@ import java.util.function.BiFunction;
  * Provide a generic interface for iterating over named API resources
  */
 class PaginatedNamedResourceIterator implements Iterator<NamedApiResource> {
-    private static final int BATCH_SIZE = 100;
     // TODO: Some kind of appconfig instead of defaults scattered everywhere
-    private static final Retryer<NamedApiResourceList> RETRYER = RetryerBuilder.<NamedApiResourceList>newBuilder()
-            .retryIfExceptionOfType(IOException.class)
-            .withWaitStrategy(WaitStrategies.exponentialWait(10, TimeUnit.SECONDS))
-            .withStopStrategy(StopStrategies.stopAfterDelay(60, TimeUnit.SECONDS))
-            .build();
+    private static final int BATCH_SIZE = 100;
 
     private final BiFunction<Integer, Integer, NamedApiResourceList> batchProducer_;
 
@@ -63,16 +58,11 @@ class PaginatedNamedResourceIterator implements Iterator<NamedApiResource> {
         Validate.isTrue(!exhausted_, "Cannot update to a new batch for an already-exhausted resource!");
 
         // Poll the producer for new data
-        final NamedApiResourceList resourceList;
-        try {
-            resourceList = RETRYER.call(() -> batchProducer_.apply(batchOffset_, BATCH_SIZE));
-            batchOffset_ += BATCH_SIZE;
+        final NamedApiResourceList resourceList = batchProducer_.apply(batchOffset_, BATCH_SIZE);
+        batchOffset_ += BATCH_SIZE;
 
-            // Save an iterable
-            batchIterator_ = resourceList.getResults().iterator();
-            exhausted_ = resourceList.getNext() == null;
-        } catch (ExecutionException | RetryException e) {
-            throw new RuntimeException("Encountered exception while updating a batch!", e);
-        }
+        // Save an iterable
+        batchIterator_ = resourceList.getResults().iterator();
+        exhausted_ = resourceList.getNext() == null;
     }
 }
