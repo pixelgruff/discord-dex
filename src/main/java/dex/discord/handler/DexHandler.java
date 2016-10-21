@@ -62,7 +62,7 @@ public class DexHandler extends Handler
         final String pokemonName = species.getName();
         final int pokemonId = species.getId();
         final Pokemon pokemon = client_.get(Pokemon.class, pokemonId)
-                .orElseThrow(ExceptionUtils.fail("No Pokemon found with name %s, ID %d!", pokemonName, pokemonId));
+                .orElseThrow(ThrowableUtils.fail("No Pokemon found with name %s, ID %d!", pokemonName, pokemonId));
         replyBuilder.append(String.format("%s is a %s type Pokemon.",
                 PrintingUtils.properNoun(pokemonName),
                 PrintingUtils.prettifiedTypes(pokemon.getTypes())));
@@ -70,7 +70,7 @@ public class DexHandler extends Handler
         // Evolves: from, to
         final int evolutionChainId = species.getEvolutionChain().getId();
         final EvolutionChain evolutionChain = client_.get(EvolutionChain.class, evolutionChainId)
-                .orElseThrow(ExceptionUtils.fail("No evolution chain found for Pokemon '%s', ID %s", pokemonName, evolutionChainId));
+                .orElseThrow(ThrowableUtils.fail("No evolution chain found for Pokemon '%s', ID %s", pokemonName, evolutionChainId));
         final Optional<ChainLink> maybePriorEvolution = EvolutionUtils.getPriorEvolution(evolutionChain, pokemonName);
         final List<ChainLink> futureEvolutions = EvolutionUtils.getFutureEvolution(evolutionChain, pokemonName);
 
