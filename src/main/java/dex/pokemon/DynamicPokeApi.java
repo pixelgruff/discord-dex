@@ -81,11 +81,16 @@ public class DynamicPokeApi
 
     private <T> Function<Integer, T> getAccessorFor(final Class<T> clazz)
     {
-        final Function<Integer, ?> rawAccessor = dataTypeToAccessor_.get(clazz);
-        Validate.notNull(rawAccessor, "No accessor found for data type %s!", clazz.getSimpleName());
-        // I don't know a way to dynamically cast a Function type (suspect because it's 'reified'), so we do it live
-        // http://www.codeaffine.com/2015/03/04/map-distinct-value-types-using-java-generics/
-        return (Function<Integer, T>) rawAccessor;
+        try {
+            final Function<Integer, ?> rawAccessor = dataTypeToAccessor_.get(clazz);
+            Validate.notNull(rawAccessor, "No accessor found for data type %s!", clazz.getSimpleName());
+            // I don't know a way to dynamically cast a Function type (suspect because it's 'reified'), so we do it live
+            // http://www.codeaffine.com/2015/03/04/map-distinct-value-types-using-java-generics/
+            return (Function<Integer, T>) rawAccessor;
+        } catch (Exception e) {
+            LOG.error("Encountered exception getting the accessor for data of type {}!", clazz.getSimpleName(), e);
+            throw e;
+        }
     }
 
     /**
