@@ -5,6 +5,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import dex.util.StreamUtil;
 import dex.util.ThrowableUtils;
 import me.sargunvohra.lib.pokekotlin.client.PokeApi;
@@ -15,6 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -34,21 +37,41 @@ public class DynamicPokeApi
     private final ImmutableMap<String, Integer> speciesNameToId_;
 
     private DynamicPokeApi(final ImmutableMap<Class<?>, Function<Integer, ?>> dataTypeToAccessor,
-                           final ImmutableMap<String, Integer> speciesNameToId)
+            final ImmutableMap<String, Integer> speciesNameToId)
     {
         dataTypeToAccessor_ = dataTypeToAccessor;
         speciesNameToId_ = speciesNameToId;
     }
 
-    public static DynamicPokeApi wrap(final PokeApi client)
+    public static DynamicPokeApi wrap(final PokeApi client, Class<?>... supportedDataTypes)
     {
+        final Set<Class<?>> supportedDataTypeSet = ImmutableSet.copyOf(supportedDataTypes);
+
         // Construct a mapping of API data types to the API calls that access them
-        final ImmutableMap<Class<?>, Function<Integer, ?>> dataTypeToAccessor = ImmutableMap.<Class<?>, Function<Integer, ?>>builder()
-                .put(PokemonSpecies.class, wrapAccessor(client::getPokemonSpecies))
-                .put(Pokemon.class, wrapAccessor(client::getPokemon))
-                .put(Nature.class, wrapAccessor(client::getNature))
-                .put(EvolutionChain.class, wrapAccessor(client::getEvolutionChain))
-                .build();
+        final ImmutableMap.Builder<Class<?>, Function<Integer, ?>> dataTypeToAccessorBuilder = ImmutableMap.builder();
+
+        final Class apiClass = client.getClass();
+        // Use reflection to acquire, then wrap, functions that return the desired data types
+        // This will totally, messily break if the API for the underlying client changes.
+        // TODO: Do some smarter inspection to fast-fail in case of emergency
+        for (final Method method : apiClass.getMethods()) {
+            final Class<?> returnType = method.getReturnType();
+            if (supportedDataTypeSet.contains(returnType)) {
+                LOG.info("Wrapping access to data of type: {}", returnType.getSimpleName());
+                // Accessing methods via reflection adds some performance cost, but not much
+                // http://www.jguru.com/faq/view.jsp?EID=246569
+                final Function<Integer, ?> accessor = (Integer i) -> {
+                    try {
+                        return method.invoke(client, i);
+                    } catch (InvocationTargetException | IllegalAccessException e) {
+                        throw ThrowableUtils.toUnchecked(e);
+                    }
+                };
+                dataTypeToAccessorBuilder.put(returnType, accessor);
+            }
+        }
+
+        final ImmutableMap<Class<?>, Function<Integer, ?>> dataTypeToAccessor = dataTypeToAccessorBuilder.build();
         LOG.info("Built up accessors for the following data types: {}", dataTypeToAccessor.keySet().asList());
 
         // Build up a mapping of Pokemon names -> PokemonSpecies IDs
@@ -60,11 +83,11 @@ public class DynamicPokeApi
         return new DynamicPokeApi(dataTypeToAccessor, ImmutableMap.copyOf(speciesNameToId));
     }
 
+    // TODO: Move named-cache functionality out and rely on NamedCache instead
     public Optional<PokemonSpecies> getPokemonSpecies(final String name)
     {
         final Integer speciesId = speciesNameToId_.get(name.toLowerCase());
-        Validate.notNull(speciesId, String.format("%s not found in species names!", name));
-        return get(PokemonSpecies.class, speciesId);
+        return speciesId != null ? get(PokemonSpecies.class, speciesId) : Optional.empty();
     }
 
     public <T> Optional<T> get(final Class<T> clazz, final int id)
@@ -98,20 +121,23 @@ public class DynamicPokeApi
      */
     private static <T, R> Function<T, R> wrapAccessor(final Function<T, R> accessor)
     {
-        final Function<T, R> retryingAccessor = attachRetries(accessor, Collections.singletonList(IOException.class));
-        return attachCache(retryingAccessor);
+        final Function<T, R> retryingAccessor = attachDefaultRetries(accessor,
+                Arrays.asList(IOException.class, RuntimeException.class));
+        return attachDefaultCache(retryingAccessor);
     }
 
     /**
      * Decorate a function such that its results are accessed through a {@link com.google.common.cache.LoadingCache}
      */
-    private static <T, R> Function<T, R> attachCache(final Function<T, R> function)
+    private static <T, R> Function<T, R> attachDefaultCache(final Function<T, R> function)
     {
         final LoadingCache<T, R> cache = CacheBuilder.newBuilder()
                 .expireAfterAccess(24, TimeUnit.HOURS)
-                .build(new CacheLoader<T, R>() {
+                .build(new CacheLoader<T, R>()
+                {
                     @Override
-                    public R load(@NotNull T key) throws Exception {
+                    public R load(@NotNull T key) throws Exception
+                    {
                         // TODO: Move retrying into the client, not the cache itself
                         return function.apply(key);
                     }
@@ -129,8 +155,8 @@ public class DynamicPokeApi
     /**
      * Decorate a function such that its results are accessed through a {@link Retryer}
      */
-    private static <T, R> Function<T, R> attachRetries(final Function<T, R> function,
-                                                       final List<Class<? extends Throwable>> retryableExceptionTypes)
+    private static <T, R> Function<T, R> attachDefaultRetries(final Function<T, R> function,
+            final List<Class<? extends Throwable>> retryableExceptionTypes)
     {
         final RetryerBuilder<R> retryerBuilder = RetryerBuilder.<R>newBuilder()
                 .withWaitStrategy(WaitStrategies.exponentialWait(10, TimeUnit.SECONDS))
