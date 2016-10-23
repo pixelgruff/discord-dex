@@ -25,7 +25,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Augment the {@link PokeApi} API with retry logic, caching, and query-by-name for {@link PokemonSpecies}
+ * Augment the {@link PokeApi} API with retry logic and caching
  */
 public class DynamicPokeApi
 {
@@ -33,73 +33,64 @@ public class DynamicPokeApi
 
     // Mapping of data types to data accessors
     private final ImmutableMap<Class<?>, Function<Integer, ?>> dataTypeToAccessor_;
-    // Cached map to allow lookup by Pokemon name
-    private final ImmutableMap<String, Integer> speciesNameToId_;
 
-    private DynamicPokeApi(final ImmutableMap<Class<?>, Function<Integer, ?>> dataTypeToAccessor,
-            final ImmutableMap<String, Integer> speciesNameToId)
+    private DynamicPokeApi(final ImmutableMap<Class<?>, Function<Integer, ?>> dataTypeToAccessor)
     {
         dataTypeToAccessor_ = dataTypeToAccessor;
-        speciesNameToId_ = speciesNameToId;
     }
 
     public static DynamicPokeApi wrap(final PokeApi client, Class<?>... supportedDataTypes)
     {
         final Set<Class<?>> supportedDataTypeSet = ImmutableSet.copyOf(supportedDataTypes);
+        return wrap(client, supportedDataTypeSet);
+    }
+
+    public static DynamicPokeApi wrap(final PokeApi client, Set<Class<?>> supportedDataTypes)
+    {
+        Validate.notNull(client, "Cannot wrap a null client!");
+        Validate.notEmpty(supportedDataTypes, "Cannot generate a useful client that supports no data types!");
 
         // Construct a mapping of API data types to the API calls that access them
-        final ImmutableMap.Builder<Class<?>, Function<Integer, ?>> dataTypeToAccessorBuilder = ImmutableMap.builder();
-
         final Class apiClass = client.getClass();
+        final List<Method> accessors = Arrays.stream(apiClass.getMethods())
+                .filter((Method m) -> supportedDataTypes.contains(m.getReturnType()))
+                .collect(Collectors.toList());
+        final Map<Class<?>, Function<Integer, ?>> accessorMap = new HashMap<>(accessors.size());
+
         // Use reflection to acquire, then wrap, functions that return the desired data types
         // This will totally, messily break if the API for the underlying client changes.
         // TODO: Do some smarter inspection to fast-fail in case of emergency
-        for (final Method method : apiClass.getMethods()) {
+        for (final Method method : accessors) {
+            // Identify any duplicate methods for obtaining the same data
             final Class<?> returnType = method.getReturnType();
-            if (supportedDataTypeSet.contains(returnType)) {
-                LOG.info("Wrapping access to data of type: {}", returnType.getSimpleName());
-                // Accessing methods via reflection adds some performance cost, but not much
-                // http://www.jguru.com/faq/view.jsp?EID=246569
-                final Function<Integer, ?> accessor = (Integer i) -> {
-                    try {
-                        return method.invoke(client, i);
-                    } catch (InvocationTargetException | IllegalAccessException e) {
-                        throw ThrowableUtils.toUnchecked(e);
-                    }
-                };
-                dataTypeToAccessorBuilder.put(returnType, accessor);
-            }
+            LOG.info("Wrapping access to data of type: {}", returnType.getSimpleName());
+            final Function<Integer, ?> wrappedAccessor = wrapAccessorMethod(client, method);
+            final Function<Integer, ?> previousAccessor = accessorMap.put(returnType, wrappedAccessor);
+
+            Validate.isTrue(previousAccessor == null, "%s exposes an API that has multiple accessors for data of type: %s!",
+                    apiClass.getSimpleName(), returnType.getSimpleName());
         }
 
-        final ImmutableMap<Class<?>, Function<Integer, ?>> dataTypeToAccessor = dataTypeToAccessorBuilder.build();
-        LOG.info("Built up accessors for the following data types: {}", dataTypeToAccessor.keySet().asList());
+        final ImmutableMap<Class<?>, Function<Integer, ?>> immutableAccessorMap = ImmutableMap.copyOf(accessorMap);
+        LOG.info("Wrapped accessors for the following data types: {}", immutableAccessorMap.keySet().asList());
 
-        // Build up a mapping of Pokemon names -> PokemonSpecies IDs
-        final PaginatedNamedResourceList speciesResourceList = PaginatedNamedResourceList.withBatchedProducer(client::getPokemonSpeciesList);
-        final Map<String, Integer> speciesNameToId = StreamUtil.streamOf(speciesResourceList)
-                .collect(Collectors.toMap(NamedApiResource::getName, NamedApiResource::getId));
-        LOG.info("Built up a mapping of species names : IDs ({} total).", speciesNameToId.size());
-
-        return new DynamicPokeApi(dataTypeToAccessor, ImmutableMap.copyOf(speciesNameToId));
-    }
-
-    // TODO: Move named-cache functionality out and rely on NamedCache instead
-    public Optional<PokemonSpecies> getPokemonSpecies(final String name)
-    {
-        final Integer speciesId = speciesNameToId_.get(name.toLowerCase());
-        return speciesId != null ? get(PokemonSpecies.class, speciesId) : Optional.empty();
+        return new DynamicPokeApi(immutableAccessorMap);
     }
 
     public <T> Optional<T> get(final Class<T> clazz, final int id)
     {
         final Function<Integer, T> accessor = getAccessorFor(clazz);
         try {
-            // Use a raw Retryer to allow reuse of the same Retryer
             final T result = accessor.apply(id);
-            return Optional.of(accessor.apply(id));
+            return Optional.of(result);
         } catch (Exception e) {
             return Optional.empty();
         }
+    }
+
+    public Set<Class<?>> getSupportedDataTypes()
+    {
+        return dataTypeToAccessor_.keySet();
     }
 
     private <T> Function<Integer, T> getAccessorFor(final Class<T> clazz)
@@ -114,6 +105,23 @@ public class DynamicPokeApi
             LOG.error("Encountered exception getting the accessor for data of type {}!", clazz.getSimpleName(), e);
             throw e;
         }
+    }
+
+    private static <T> Function<T, ?> wrapAccessorMethod(final Object parent, final Method method)
+    {
+        LOG.info("Wrapping access to data of type: {}", method.getReturnType().getSimpleName());
+        // Accessing methods via reflection adds some performance cost, but not much
+        // http://www.jguru.com/faq/view.jsp?EID=246569
+
+        final Function<T, ?> accessor = (T t) -> {
+            try {
+                return method.invoke(parent, t);
+            } catch (InvocationTargetException | IllegalAccessException e) {
+                throw ThrowableUtils.toUnchecked(String.format("Not able to invoke dynamically-wrapped method %s!",
+                        method.getName()), e);
+            }
+        };
+        return wrapAccessor(accessor);
     }
 
     /**
@@ -138,7 +146,6 @@ public class DynamicPokeApi
                     @Override
                     public R load(@NotNull T key) throws Exception
                     {
-                        // TODO: Move retrying into the client, not the cache itself
                         return function.apply(key);
                     }
                 });

@@ -3,11 +3,13 @@ package dex.discord.handler;
 import com.google.common.base.Joiner;
 import dex.discord.DexCommand;
 import dex.pokemon.DynamicPokeApi;
+import dex.pokemon.NameCache;
 import dex.util.*;
 import me.sargunvohra.lib.pokekotlin.model.ChainLink;
 import me.sargunvohra.lib.pokekotlin.model.EvolutionChain;
 import me.sargunvohra.lib.pokekotlin.model.Pokemon;
 import me.sargunvohra.lib.pokekotlin.model.PokemonSpecies;
+import org.apache.commons.lang3.Validate;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
@@ -22,10 +24,22 @@ public class DexHandler extends Handler
     private static final Joiner OR_JOINER = Joiner.on(" or ");
 
     private final DynamicPokeApi client_;
+    private final NameCache speciesIds_;
 
-    public DexHandler(final DynamicPokeApi client)
+    // TODO: Could we abstract this entire pattern away into a 'HandlerThatRequires(List<Class>)' pattern?
+    public DexHandler(final DynamicPokeApi client, final NameCache speciesIds)
     {
+        Validate.notNull(client);
+        Validate.isTrue(client.getSupportedDataTypes().contains(PokemonSpecies.class),
+                "Provided PokeAPI client does not support access to PokemonSpecies objects!");
+        Validate.isTrue(client.getSupportedDataTypes().contains(Pokemon.class),
+                "Provided PokeAPI client does not support access to Pokemon objects!");
+        Validate.isTrue(client.getSupportedDataTypes().contains(EvolutionChain.class),
+                "Provided PokeAPI client does not support access to EvolutionChain objects!");
+        Validate.notNull(speciesIds);
+
         client_ = client;
+        speciesIds_ = speciesIds;
     }
 
     @Override
@@ -50,13 +64,20 @@ public class DexHandler extends Handler
     {
         // Construct reply
         // TODO: Some kind of composable pattern to abstract this away from direct String manipulation
-        final StringBuilder replyBuilder = new StringBuilder();
+        final Optional<Integer> maybeId = speciesIds_.getId(name);
+        if (!maybeId.isPresent()) {
+            return String.format("I'm sorry.  I couldn't find %s in my list of Pokemon species.",
+                    PrintingUtils.properNoun(name));
+        }
+        final int id = maybeId.get();
 
-        final Optional<PokemonSpecies> maybeSpecies = client_.getPokemonSpecies(name);
+        final Optional<PokemonSpecies> maybeSpecies = client_.get(PokemonSpecies.class, id);
         if (!maybeSpecies.isPresent()) {
-            return String.format("I could not find a species named %s.", PrintingUtils.properNoun(name));
+            return String.format("I'm sorry.  I couldn't get any information about %s (Nature #%d)", name, id);
         }
         final PokemonSpecies species = maybeSpecies.get();
+
+        final StringBuilder replyBuilder = new StringBuilder();
 
         // Name and type
         final String pokemonName = species.getName();

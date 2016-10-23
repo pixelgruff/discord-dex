@@ -18,4 +18,9 @@ public class ThrowableUtils
     {
         return new RuntimeException(e);
     }
+
+    public static RuntimeException toUnchecked(final String cause, final Throwable e)
+    {
+        return new RuntimeException(cause, e);
+    }
 }
