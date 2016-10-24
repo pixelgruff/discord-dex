@@ -1,14 +1,10 @@
 package dex.pokemon;
 
-import com.github.rholder.retry.*;
 import me.sargunvohra.lib.pokekotlin.model.NamedApiResource;
 import me.sargunvohra.lib.pokekotlin.model.NamedApiResourceList;
 import org.apache.commons.lang3.Validate;
 
-import java.io.IOException;
 import java.util.Iterator;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 
 /**
