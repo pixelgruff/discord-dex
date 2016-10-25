@@ -9,6 +9,7 @@ import dex.pokemon.NameCache;
 import dex.util.EvolutionUtils;
 import dex.util.ParsingUtils;
 import dex.util.PrintingUtils;
+import dex.util.SpellingSuggester;
 import me.sargunvohra.lib.pokekotlin.model.ChainLink;
 import me.sargunvohra.lib.pokekotlin.model.EvolutionChain;
 import me.sargunvohra.lib.pokekotlin.model.Pokemon;
@@ -22,6 +23,7 @@ import sx.blah.discord.util.RateLimitException;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -34,6 +36,7 @@ public class DexHandler extends Handler
     private final DynamicPokeApi client_;
     private final NameCache speciesIds_;
     private final List<BiFunction<Responder, PokemonSpecies, Responder>> responseBuilders_;
+    private final SpellingSuggester speciesNameSuggester_;
 
     // TODO: Could we abstract this entire pattern away into a 'HandlerThatRequires(List<Class>)' pattern?
     public DexHandler(final DynamicPokeApi client, final NameCache speciesIds)
@@ -50,6 +53,7 @@ public class DexHandler extends Handler
         client_ = client;
         speciesIds_ = speciesIds;
         responseBuilders_ = Arrays.asList(this::addPokemonData, this::addEvolutionData);
+        speciesNameSuggester_ = new SpellingSuggester(speciesIds.getAllNames());
     }
 
     @Override
@@ -77,9 +81,22 @@ public class DexHandler extends Handler
     // Construct response
         final Optional<Integer> maybeId = speciesIds_.getId(name);
         if (!maybeId.isPresent()) {
-            final String response = String.format("I'm sorry.  I couldn't find %s in my list of Pokemon species.",
-                    PrintingUtils.properNoun(name));
-            return Responder.simpleResponder(event, response);
+            final StringBuilder noIdResponseBuilder = new StringBuilder();
+            noIdResponseBuilder.append(
+                    String.format("I'm sorry.  I couldn't find %s in my list of Pokemon species.",
+                    PrintingUtils.properNoun(name)));
+
+            // Suggest a name if the lookup failed
+            final Collection<String> suggestions = suggestedNames(name);
+            if (!suggestions.isEmpty()) {
+                noIdResponseBuilder.append(
+                        String.format("  Did you mean %s?", OR_JOINER.join(
+                        suggestions.stream()
+                                .map(PrintingUtils::firstUppercase)
+                                .collect(Collectors.toList()))));
+            }
+
+            return Responder.simpleResponder(event, noIdResponseBuilder.toString());
         }
         final int id = maybeId.get();
 
@@ -91,6 +108,7 @@ public class DexHandler extends Handler
         }
         final PokemonSpecies species = maybeSpecies.get();
 
+        // TODO: This pattern is really brittle due to the enforced signature of the builder functions
         Responder responder = new Responder(event);
         for (final BiFunction<Responder, PokemonSpecies, Responder> builder : responseBuilders_) {
             responder = builder.apply(responder, species);
@@ -101,6 +119,11 @@ public class DexHandler extends Handler
         }
 
         return responder;
+    }
+
+    private Collection<String> suggestedNames(final String wrongName)
+    {
+        return speciesNameSuggester_.suggest(wrongName);
     }
 
     private Responder addPokemonData(final Responder responder, final PokemonSpecies species)
@@ -149,6 +172,7 @@ public class DexHandler extends Handler
 
         final StringBuilder responseBuilder = new StringBuilder();
         if (maybePriorEvolution.isPresent() && !futureEvolutions.isEmpty()) {
+
             final String priorEvolutionName = PrintingUtils.properNoun(
                     maybePriorEvolution.get().getSpecies().getName());
             final List<String> futureEvolutionNames = futureEvolutions.stream()
@@ -157,8 +181,8 @@ public class DexHandler extends Handler
             responseBuilder.append(String.format("It evolves from %s and into %s.",
                     priorEvolutionName, OR_JOINER.join(futureEvolutionNames)));
         } else if (maybePriorEvolution.isPresent() && futureEvolutions.isEmpty()) {
-            final String priorEvolutionName = maybePriorEvolution.get().getSpecies().getName();
-            responseBuilder.append(String.format("It evolves from %s.", priorEvolutionName));
+            responseBuilder.append(String.format("It evolves from %s.",
+                    PrintingUtils.properNoun(maybePriorEvolution.get().getSpecies().getName())));
         } else if (!maybePriorEvolution.isPresent() && !futureEvolutions.isEmpty()) {
             final List<String> futureEvolutionNames = futureEvolutions.stream()
                     .map(evolution -> PrintingUtils.properNoun(evolution.getSpecies().getName()))

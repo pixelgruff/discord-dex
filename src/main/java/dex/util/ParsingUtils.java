@@ -60,4 +60,9 @@ public class ParsingUtils
         // Remove leading command character
         return commandMessage.substring(1);
     }
+
+    public static String comparisonFormat(final String s)
+    {
+        return s.trim().toLowerCase();
+    }
 }

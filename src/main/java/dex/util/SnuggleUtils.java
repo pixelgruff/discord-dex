@@ -30,17 +30,20 @@ public class SnuggleUtils
         return event.getMessage().getAuthor().getID().equals(CHEMKAT_DISCORD_ID);
     }
 
+    public static String cuteMissive()
+    {
+        final String nickname = NICKNAMES.get(ThreadLocalRandom.current().nextInt(NICKNAMES.size()));
+        return String.format("(hey, %s, enjoy some consolation cats)", nickname);
+    }
+
     public static void respond(final String reply, final MessageReceivedEvent event)
     {
         try {
-            final String nickname = NICKNAMES.get(ThreadLocalRandom.current().nextInt(NICKNAMES.size()));
-            final String cuteReply = String.format("%s\n(hey, %s, enjoy some consolation cats)", reply, nickname);
-
             // What even is the internet: http://thecatapi.com/
             try (final InputStream stream =
                          new URL("http://thecatapi.com/api/images/get?format=src&type=jpg").openStream()) {
                 // Extension required for Discord preview
-                event.getMessage().getChannel().sendFile(stream, "cat_tax.jpg", cuteReply);
+                event.getMessage().getChannel().sendFile(stream, "cat_tax.jpg", reply);
             }
         } catch (Exception e) {
             LOG.error("Encountered exception while bein' cute in response to '{}'", event.getMessage().getContent(), e);
