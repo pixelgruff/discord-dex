@@ -1,10 +1,12 @@
 package dex.discord.handler;
 
 import dex.discord.DexCommand;
+import dex.discord.respond.TypingStatus;
 import dex.pokemon.DynamicPokeApi;
 import dex.pokemon.NameCache;
 import dex.util.ParsingUtils;
 import dex.util.PrintingUtils;
+import me.sargunvohra.lib.pokekotlin.model.NamedApiResource;
 import me.sargunvohra.lib.pokekotlin.model.Nature;
 import org.apache.commons.lang3.Validate;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
@@ -42,10 +44,12 @@ public class NatureHandler extends Handler {
             return;
         }
 
-        // Construct and send the reply
-        final String reply = generateReply(name);
-
-        event.getMessage().reply(reply);
+        // Construct and send the response
+        try (final TypingStatus typing = TypingStatus.start(event.getMessage().getChannel())) {
+            // Construct and send the respond
+            final String reply = generateReply(name);
+            event.getMessage().getChannel().sendMessage(reply);
+        }
     }
 
     private String generateReply(final String name)
@@ -68,15 +72,15 @@ public class NatureHandler extends Handler {
         {
             replyBuilder.append(String.format("%s has no effect on stats.", PrintingUtils.properNoun(name)));
         } else {
-            replyBuilder.append(String.format("%s has the following effects: ```diff", PrintingUtils.properNoun(name)));
-            // Construct reply with optional fields
-            if (nature.getIncreasedStat() != null) {
-                replyBuilder.append(String.format("\n+ %s", nature.getIncreasedStat().getName()));
-            }
-            if (nature.getDecreasedStat() != null) {
-                replyBuilder.append(String.format("\n- %s", nature.getDecreasedStat().getName()));
-            }
-            replyBuilder.append("```");
+            final NamedApiResource increasedStat = nature.getIncreasedStat();
+            final NamedApiResource decreasedStat = nature.getDecreasedStat();
+
+            final String increased = increasedStat != null ? increasedStat.getName() : null;
+            final String decreased = decreasedStat != null ? decreasedStat.getName() : null;
+
+            final String diffMessage = String.format("%s has the following effects: %s",
+                    PrintingUtils.properNoun(name), PrintingUtils.diff(increased, decreased));
+            replyBuilder.append(diffMessage);
         }
 
         return replyBuilder.toString();

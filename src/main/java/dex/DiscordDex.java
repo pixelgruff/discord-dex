@@ -3,10 +3,7 @@ package dex;
 import com.google.common.collect.ImmutableMap;
 import dex.discord.DexCommand;
 import dex.discord.DexListener;
-import dex.discord.handler.DexHandler;
-import dex.discord.handler.Handler;
-import dex.discord.handler.HelpHandler;
-import dex.discord.handler.NatureHandler;
+import dex.discord.handler.*;
 import dex.pokemon.DynamicPokeApi;
 import dex.pokemon.NameCache;
 import me.sargunvohra.lib.pokekotlin.client.PokeApi;
@@ -44,6 +41,7 @@ public class DiscordDex
                     .put(DexCommand.help, new HelpHandler())
                     .put(DexCommand.nature, new NatureHandler(DYNAMIC_CLIENT, NATURE_ID_CACHE))
                     .put(DexCommand.dex, new DexHandler(DYNAMIC_CLIENT, SPECIES_ID_CACHE))
+                    .put(DexCommand.ket, new KetHandler())
                     .build();
     private static final DexListener DEX_LISTENER = new DexListener(COMMAND_RESPONSES);
 

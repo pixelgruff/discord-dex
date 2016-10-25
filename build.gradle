@@ -34,4 +34,7 @@ dependencies {
 
     // https://github.com/rholder/guava-retrying
     compile "com.github.rholder:guava-retrying:2.0.0"
+
+    // https://github.com/junit-team/junit4/wiki/Use-with-Gradle
+    testCompile 'junit:junit:4.12'
 }

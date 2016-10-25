@@ -7,6 +7,8 @@ import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
 
+import java.io.IOException;
+
 public abstract class Handler
 {
     protected static final Logger LOG = LoggerFactory.getLogger(Handler.class);
@@ -25,5 +27,6 @@ public abstract class Handler
         }
     }
 
-    abstract void respond(final MessageReceivedEvent event) throws MissingPermissionsException, RateLimitException, DiscordException;
+    abstract void respond(final MessageReceivedEvent event)
+            throws IOException, MissingPermissionsException, RateLimitException, DiscordException;
 }

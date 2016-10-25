@@ -9,7 +9,8 @@ public enum DexCommand
 {
     help,
     dex,
-    nature;
+    nature,
+    ket;
 
     public static Optional<DexCommand> optionalValueOf(final String name)
     {

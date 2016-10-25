@@ -112,10 +112,8 @@ public class DynamicPokeApi
 
     private static <T> Function<T, ?> wrapAccessorMethod(final Object parent, final Method method)
     {
-        LOG.info("Wrapping access to data of type: {}", method.getReturnType().getSimpleName());
         // Accessing methods via reflection adds some performance cost, but not much
         // http://www.jguru.com/faq/view.jsp?EID=246569
-
         final Function<T, ?> accessor = (T t) -> {
             try {
                 return method.invoke(parent, t);
