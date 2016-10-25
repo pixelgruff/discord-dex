@@ -6,6 +6,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import dex.util.ThrowableUtils;
 import me.sargunvohra.lib.pokekotlin.client.PokeApi;
 import org.apache.commons.lang3.Validate;
@@ -68,6 +69,10 @@ public class DynamicPokeApi
             Validate.isTrue(previousAccessor == null, "%s exposes an API that has multiple accessors for data of type: %s!",
                     apiClass.getSimpleName(), returnType.getSimpleName());
         }
+
+        Validate.isTrue(accessorMap.keySet().containsAll(supportedDataTypes),
+                "Accessors for all data types not found!  Missing types: %s",
+                Sets.difference(accessorMap.keySet(), supportedDataTypes));
 
         final ImmutableMap<Class<?>, Function<Integer, ?>> immutableAccessorMap = ImmutableMap.copyOf(accessorMap);
         LOG.info("Wrapped accessors for the following data types: {}", immutableAccessorMap.keySet().asList());
