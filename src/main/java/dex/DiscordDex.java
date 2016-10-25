@@ -41,6 +41,7 @@ public class DiscordDex
                     .put(DexCommand.help, new HelpHandler())
                     .put(DexCommand.nature, new NatureHandler(DYNAMIC_CLIENT, NATURE_ID_CACHE))
                     .put(DexCommand.dex, new DexHandler(DYNAMIC_CLIENT, SPECIES_ID_CACHE))
+                    .put(DexCommand.delete, new DeleteHandler())
                     .put(DexCommand.ket, new KetHandler())
                     .build();
     private static final DexListener DEX_LISTENER = new DexListener(COMMAND_RESPONSES);

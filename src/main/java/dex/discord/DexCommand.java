@@ -10,6 +10,7 @@ public enum DexCommand
     help,
     dex,
     nature,
+    delete,
     ket;
 
     public static Optional<DexCommand> optionalValueOf(final String name)

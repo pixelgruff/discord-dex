@@ -1,5 +1,6 @@
 package dex.util;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import java.util.Arrays;
@@ -20,7 +21,7 @@ public class ParsingUtils
     {
         Validate.isTrue(index >= 0, "Cannot find the argument at a subzero index!");
         final List<String> arguments = parseArguments(message);
-        Validate.inclusiveBetween(1, index + 1, arguments.size(),
+        Validate.inclusiveBetween(1, arguments.size(), index + 1,
                 String.format("Insufficient arguments returned from message %s to parse an argument at index %d!",
                         message, index));
         return arguments.get(index);
@@ -37,6 +38,20 @@ public class ParsingUtils
                 .map(String::trim)
                 // Skip the command
                 .collect(Collectors.toList());
+    }
+
+    public static Optional<String> getFirstArgument(final String message)
+    {
+        if (StringUtils.isBlank(message)) {
+            return Optional.empty();
+        }
+
+        final List<String> arguments = parseArguments(message);
+        if (arguments.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(arguments.get(0));
     }
 
     /**

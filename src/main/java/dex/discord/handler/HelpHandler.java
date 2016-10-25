@@ -24,8 +24,8 @@ public class HelpHandler extends Handler
             .map(Enum::name)
             .collect(Collectors.toList()));
     private static final String STANDARD_HELP = NEWLINE_JOINER.join(
-            String.format("usage: ![%s] [arguments]", COMMANDS),
-            "Use !help [command] for more details."
+            String.format("usage: `![%s] [arguments]`", COMMANDS),
+            "Use `!help [command]` for more details."
     );
 
     @Override
@@ -41,11 +41,11 @@ public class HelpHandler extends Handler
             if (maybeCommand.isPresent()) {
                 reply = helpResponse(maybeCommand.get());
             } else {
-                reply = String.format("please provide a help command in the list [%s].", COMMANDS);
+                reply = String.format("Please provide a help command in the list [%s].", COMMANDS);
             }
         }
 
-        event.getMessage().reply(reply);
+        event.getMessage().getChannel().sendMessage(reply);
     }
 
     /**
@@ -55,15 +55,19 @@ public class HelpHandler extends Handler
     {
         switch (command) {
             case help:
-                return "please do not ask for help with the help command; it is wasteful, and impolite.";
+                return "Please do not ask for help with the help command; it is wasteful, and impolite.";
             case nature:
-                return "usage: !nature [nature name]\n" +
-                        "Example: !nature Jolly";
+                return "usage: `!nature [nature name]`\n" +
+                        "Example: `!nature Jolly`";
             case dex:
-                return "usage: !dex [pokemon name]\n" +
-                        "Example: !dex Sneasel";
+                return "usage: `!dex [pokemon name]`\n" +
+                        "Example: `!dex Sneasel`";
+            case delete:
+                return "usage: `!delete [limit]`\n" +
+                        "Example: `!delete 10`\n" +
+                        "would delete my 10 latest messages.";
             case ket:
-                return "usage: !ket\n" +
+                return "usage: `!ket`\n" +
                         "For special occasions.";
             default:
                 return String.format("No help text defined for %s!  *Someone* has work to do.", command.name());
