@@ -1,5 +1,6 @@
 package dex.util;
 
+import me.sargunvohra.lib.pokekotlin.model.NamedApiResource;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
@@ -79,5 +80,10 @@ public class ParsingUtils
     public static String comparisonFormat(final String s)
     {
         return s.trim().toLowerCase();
+    }
+
+    public static boolean isEnglish(final NamedApiResource resource)
+    {
+        return resource.getName().equals("en");
     }
 }

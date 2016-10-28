@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 
 public class DexHandler extends Handler
 {
-    private static final Joiner OR_JOINER = Joiner.on(" or ");
+    private static final Joiner OR_JOINER = Joiner.on(", or ");
 
     private final DynamicPokeApi client_;
     private final NameCache speciesIds_;
@@ -140,10 +140,22 @@ public class DexHandler extends Handler
         }
 
         final Pokemon pokemon = maybePokemon.get();
-        final String typeMessage = String.format("%s is a %s type Pokemon.", PrintingUtils.properNoun(name),
+
+        // TODO: separate 'type' and 'ability' additions
+        final String typeMessage = String.format("%s is type %s.", PrintingUtils.properNoun(name),
                 PrintingUtils.prettifiedTypes(pokemon.getTypes()));
         responder.addResponse(PrintingUtils.style(typeMessage, MessageBuilder.Styles.CODE));
         responder.addImageUrl(pokemon.getSprites().getFrontDefault());
+
+        final List<String> abilityDescriptions = pokemon.getAbilities().stream()
+                .map(ability -> ability.isHidden() ?
+                        // Add parentheses to hidden abilities
+                        String.format("%s (hidden)", PrintingUtils.properNoun(ability.getAbility().getName())) :
+                        PrintingUtils.properNoun(ability.getAbility().getName()))
+                .collect(Collectors.toList());
+        final String abilityMessage = String.format("%s has the ability: %s.",
+                PrintingUtils.properNoun(name), OR_JOINER.join(abilityDescriptions));
+        responder.addResponse(PrintingUtils.style(abilityMessage, MessageBuilder.Styles.CODE));
 
         return responder;
     }

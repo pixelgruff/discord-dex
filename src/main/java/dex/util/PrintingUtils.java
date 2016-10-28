@@ -45,13 +45,18 @@ public class PrintingUtils
         return style(languageIdentifiedContent, MessageBuilder.Styles.CODE_WITH_LANG);
     }
 
-    public static String diff(final String newContent, final String oldContent)
+    public static String diff(final String bothContent, final String newContent, final String oldContent)
     {
-        if (StringUtils.isBlank(newContent) && StringUtils.isBlank(oldContent)) {
+        if (StringUtils.isBlank(bothContent) && StringUtils.isBlank(newContent) && StringUtils.isBlank(oldContent)) {
             return "";
         }
 
         final StringBuilder diffStringBuilder = new StringBuilder();
+        // Content in both sides of the diff-formatted output needs no special identifier
+        if (!StringUtils.isBlank(bothContent)) {
+            diffStringBuilder.append(String.format("\n%s", bothContent));
+        }
+
         if (!StringUtils.isBlank(newContent)) {
             diffStringBuilder.append(String.format("\n%s%s", DIFF_NEW_CONTENT_IDENTIFIER, newContent));
         }

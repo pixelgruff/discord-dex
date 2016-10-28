@@ -65,7 +65,7 @@ public class EvolutionUtils
         } else {
             for (final ChainLink futureLink : priorLink.getEvolvesTo()) {
                 final Optional<ChainLink> resultLink = getMatchingEvolution(futureLink, tester);
-                if (resultLink != null) {
+                if (resultLink.isPresent()) {
                     return resultLink;
                 }
             }

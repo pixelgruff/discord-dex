@@ -35,7 +35,7 @@ public class NatureHandler extends Handler {
     @Override
     void respond(MessageReceivedEvent event) throws MissingPermissionsException, RateLimitException, DiscordException
     {
-        // Extract the Pokemon name from the input
+        // Extract the nature's name from the input
         final String name;
         try {
             name = ParsingUtils.parseFirstArgument(event.getMessage().getContent());
@@ -78,8 +78,9 @@ public class NatureHandler extends Handler {
             final String increased = increasedStat != null ? increasedStat.getName() : null;
             final String decreased = decreasedStat != null ? decreasedStat.getName() : null;
 
-            final String diffMessage = String.format("%s has the following effects: %s",
-                    PrintingUtils.properNoun(name), PrintingUtils.diff(increased, decreased));
+            final String diffMessage = PrintingUtils.diff(
+                    String.format("%s has the following effects: ", PrintingUtils.properNoun(name)),
+                    increased, decreased);
             replyBuilder.append(diffMessage);
         }
 

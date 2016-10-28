@@ -8,10 +8,7 @@ import dex.pokemon.DynamicPokeApi;
 import dex.pokemon.NameCache;
 import me.sargunvohra.lib.pokekotlin.client.PokeApi;
 import me.sargunvohra.lib.pokekotlin.client.PokeApiClient;
-import me.sargunvohra.lib.pokekotlin.model.EvolutionChain;
-import me.sargunvohra.lib.pokekotlin.model.Nature;
-import me.sargunvohra.lib.pokekotlin.model.Pokemon;
-import me.sargunvohra.lib.pokekotlin.model.PokemonSpecies;
+import me.sargunvohra.lib.pokekotlin.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sx.blah.discord.api.ClientBuilder;
@@ -31,9 +28,10 @@ public class DiscordDex
     // TODO: Move cache initialization to somewhere in main()
     private static final PokeApi POKEMON_CLIENT = new PokeApiClient();
     private static final DynamicPokeApi DYNAMIC_CLIENT = DynamicPokeApi.wrap(POKEMON_CLIENT,
-            PokemonSpecies.class, Pokemon.class, EvolutionChain.class, Nature.class);
+            PokemonSpecies.class, Pokemon.class, EvolutionChain.class, Nature.class, Ability.class);
     private static final NameCache NATURE_ID_CACHE = NameCache.initializeCache(POKEMON_CLIENT::getNatureList);
     private static final NameCache SPECIES_ID_CACHE = NameCache.initializeCache(POKEMON_CLIENT::getPokemonSpeciesList);
+    private static final NameCache ABILITY_ID_CACHE = NameCache.initializeCache(POKEMON_CLIENT::getAbilityList);
 
     // Wire up bot logic
     private static final Map<DexCommand, Handler> COMMAND_RESPONSES =
@@ -41,6 +39,7 @@ public class DiscordDex
                     .put(DexCommand.help, new HelpHandler())
                     .put(DexCommand.nature, new NatureHandler(DYNAMIC_CLIENT, NATURE_ID_CACHE))
                     .put(DexCommand.dex, new DexHandler(DYNAMIC_CLIENT, SPECIES_ID_CACHE))
+                    .put(DexCommand.ability, new AbilityHandler(DYNAMIC_CLIENT, ABILITY_ID_CACHE))
                     .put(DexCommand.delete, new DeleteHandler())
                     .put(DexCommand.ket, new KetHandler())
                     .build();
