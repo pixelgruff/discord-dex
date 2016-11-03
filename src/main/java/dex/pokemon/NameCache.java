@@ -4,7 +4,7 @@ import com.github.rholder.retry.*;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import dex.util.ParsingUtils;
-import dex.util.StreamUtil;
+import dex.util.IterableUtils;
 import dex.util.ThrowableUtils;
 import me.sargunvohra.lib.pokekotlin.model.NamedApiResource;
 import me.sargunvohra.lib.pokekotlin.model.NamedApiResourceList;
@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -54,7 +53,7 @@ public class NameCache
 
         // Build up a mapping of resource names -> resource IDs
         final PaginatedNamedResourceList speciesResourceList = PaginatedNamedResourceList.withBatchedProducer(retryingNameSupplier);
-        final Map<String, Integer> nameToId = StreamUtil.streamOf(speciesResourceList)
+        final Map<String, Integer> nameToId = IterableUtils.streamOf(speciesResourceList)
                 .collect(Collectors.toMap(namedResource -> ParsingUtils.comparisonFormat(namedResource.getName()), NamedApiResource::getId));
         LOG.info("Built up a mapping of resource names : resource IDs ({} total).", nameToId.size());
         return new NameCache(ImmutableMap.copyOf(nameToId));

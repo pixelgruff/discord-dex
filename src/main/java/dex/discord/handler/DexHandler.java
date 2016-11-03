@@ -3,11 +3,9 @@ package dex.discord.handler;
 import com.google.common.base.Joiner;
 import dex.discord.DexCommand;
 import dex.discord.respond.Responder;
-import dex.discord.respond.TypingStatus;
 import dex.pokemon.DynamicPokeApi;
 import dex.pokemon.NameCache;
 import dex.util.EvolutionUtils;
-import dex.util.ParsingUtils;
 import dex.util.PrintingUtils;
 import dex.util.SpellingSuggester;
 import me.sargunvohra.lib.pokekotlin.model.ChainLink;
@@ -29,7 +27,7 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-public class DexHandler extends Handler
+public class DexHandler extends SingleArgumentDexHandler
 {
     private static final Joiner OR_JOINER = Joiner.on(", or ");
 
@@ -38,9 +36,9 @@ public class DexHandler extends Handler
     private final List<BiFunction<Responder, PokemonSpecies, Responder>> responseBuilders_;
     private final SpellingSuggester speciesNameSuggester_;
 
-    // TODO: Could we abstract this entire pattern away into a 'HandlerThatRequires(List<Class>)' pattern?
     public DexHandler(final DynamicPokeApi client, final NameCache speciesIds)
     {
+        super(DexCommand.dex);
         Validate.notNull(client);
         Validate.isTrue(client.getSupportedDataTypes().contains(PokemonSpecies.class),
                 "Provided PokeAPI client does not support access to PokemonSpecies objects!");
@@ -57,23 +55,10 @@ public class DexHandler extends Handler
     }
 
     @Override
-    void respond(final MessageReceivedEvent event)
-            throws IOException, MissingPermissionsException, RateLimitException, DiscordException
+    void respond(MessageReceivedEvent event, String argument) throws IOException, MissingPermissionsException, RateLimitException, DiscordException
     {
-        // Extract the Pokemon name from the input
-        final String name;
-        try {
-            name = ParsingUtils.parseFirstArgument(event.getMessage().getContent());
-        } catch (Exception e) {
-            event.getMessage().reply(HelpHandler.helpResponse(DexCommand.dex));
-            return;
-        }
-
-        // Construct and send the response
-        try (final TypingStatus typing = TypingStatus.start(event.getMessage().getChannel())) {
-            final Responder responder = generateResponder(event, name);
-            responder.send();
-        }
+        final Responder responder = generateResponder(event, argument);
+        responder.respond();
     }
 
     private Responder generateResponder(MessageReceivedEvent event, final String name)

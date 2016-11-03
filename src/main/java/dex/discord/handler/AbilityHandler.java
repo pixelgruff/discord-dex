@@ -1,7 +1,6 @@
 package dex.discord.handler;
 
 import dex.discord.DexCommand;
-import dex.discord.respond.TypingStatus;
 import dex.pokemon.DynamicPokeApi;
 import dex.pokemon.NameCache;
 import dex.util.ParsingUtils;
@@ -19,20 +18,14 @@ import sx.blah.discord.util.RateLimitException;
 import java.io.IOException;
 import java.util.Optional;
 
-// TODO: Consolidate this functionality into "NameLookupHandler"?
-// TODO: Provide more convenient:
-/*
- * single-argument parsing & validation
- * association of a handler with a command word
- * spelling suggestions
- */
-public class AbilityHandler extends Handler
+public class AbilityHandler extends SingleArgumentDexHandler
 {
     private final NameCache abilityIds_;
     private final DynamicPokeApi client_;
 
     public AbilityHandler(final DynamicPokeApi client, final NameCache abilityIds)
     {
+        super(DexCommand.ability);
         Validate.notNull(client);
         Validate.isTrue(client.getSupportedDataTypes().contains(Ability.class),
                 "Provided PokeAPI client does not support access to Ability objects!");
@@ -43,23 +36,11 @@ public class AbilityHandler extends Handler
     }
 
     @Override
-    void respond(MessageReceivedEvent event) throws IOException, MissingPermissionsException, RateLimitException, DiscordException
+    void respond(final MessageReceivedEvent event, final String argument) throws IOException, MissingPermissionsException, RateLimitException, DiscordException
     {
-        // Extract the ability's name from the input
-        final String name;
-        try {
-            name = ParsingUtils.parseFirstArgument(event.getMessage().getContent());
-        } catch (Exception e) {
-            event.getMessage().reply(HelpHandler.helpResponse(DexCommand.ability));
-            return;
-        }
-
         // Construct and send the response
-        try (final TypingStatus typing = TypingStatus.start(event.getMessage().getChannel())) {
-            // Construct and send the respond
-            final String reply = generateReply(name);
-            event.getMessage().getChannel().sendMessage(reply);
-        }
+        final String reply = generateReply(argument);
+        event.getMessage().getChannel().sendMessage(reply);
     }
 
     private String generateReply(final String name)

@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-// TODO: Images and text require separate APIs to send to Discord, but it'd be much nicer to abstract all that away and make more generically composable responses!
+// TODO: Images and text require separate APIs to respond to Discord, but it'd be much nicer to abstract all that away and make more generically composable responses!
 public class Responder
 {
     private final static Joiner NEWLINE_JOINER = Joiner.on(System.lineSeparator());
@@ -39,7 +39,7 @@ public class Responder
         return responder;
     }
 
-    public void send() throws IOException, RateLimitException, DiscordException, MissingPermissionsException
+    public void respond() throws IOException, RateLimitException, DiscordException, MissingPermissionsException
     {
         final String response = NEWLINE_JOINER.join(responses_);
 

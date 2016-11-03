@@ -1,5 +1,6 @@
 package dex.discord.handler;
 
+import dex.util.IterableUtils;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
@@ -7,7 +8,6 @@ import sx.blah.discord.util.RateLimitException;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Just for fun, when real handlers are still under test
@@ -26,8 +26,6 @@ public class CantankerousHandler extends Handler {
     @Override
     void respond(MessageReceivedEvent event) throws MissingPermissionsException, RateLimitException, DiscordException
     {
-        final int responseIndex = ThreadLocalRandom.current().nextInt(CANTANKEROUS_REPLIES.size());
-        final String response = CANTANKEROUS_REPLIES.get(responseIndex);
-        event.getMessage().getChannel().sendMessage(response);
+        event.getMessage().getChannel().sendMessage(IterableUtils.randomFrom(CANTANKEROUS_REPLIES));
     }
 }

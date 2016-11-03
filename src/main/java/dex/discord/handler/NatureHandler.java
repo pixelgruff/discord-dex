@@ -14,15 +14,17 @@ import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
 
+import java.io.IOException;
 import java.util.Optional;
 
-public class NatureHandler extends Handler {
+public class NatureHandler extends SingleArgumentDexHandler {
 
     private final NameCache natureIds_;
     private final DynamicPokeApi client_;
 
     public NatureHandler(final DynamicPokeApi client, final NameCache natureIds)
     {
+        super(DexCommand.nature);
         Validate.notNull(client);
         Validate.isTrue(client.getSupportedDataTypes().contains(Nature.class),
                 "Provided PokeAPI client does not support access to Nature objects!");
@@ -33,23 +35,11 @@ public class NatureHandler extends Handler {
     }
 
     @Override
-    void respond(MessageReceivedEvent event) throws MissingPermissionsException, RateLimitException, DiscordException
+    void respond(MessageReceivedEvent event, String argument) throws IOException, MissingPermissionsException, RateLimitException, DiscordException
     {
-        // Extract the nature's name from the input
-        final String name;
-        try {
-            name = ParsingUtils.parseFirstArgument(event.getMessage().getContent());
-        } catch (Exception e) {
-            event.getMessage().reply(HelpHandler.helpResponse(DexCommand.nature));
-            return;
-        }
-
         // Construct and send the response
-        try (final TypingStatus typing = TypingStatus.start(event.getMessage().getChannel())) {
-            // Construct and send the respond
-            final String reply = generateReply(name);
-            event.getMessage().getChannel().sendMessage(reply);
-        }
+        final String reply = generateReply(argument);
+        event.getMessage().getChannel().sendMessage(reply);
     }
 
     private String generateReply(final String name)
