@@ -1,10 +1,8 @@
 package dex.discord.handler;
 
 import dex.discord.DexCommand;
-import dex.discord.respond.TypingStatus;
 import dex.pokemon.DynamicPokeApi;
 import dex.pokemon.NameCache;
-import dex.util.ParsingUtils;
 import dex.util.PrintingUtils;
 import me.sargunvohra.lib.pokekotlin.model.NamedApiResource;
 import me.sargunvohra.lib.pokekotlin.model.Nature;
@@ -17,7 +15,8 @@ import sx.blah.discord.util.RateLimitException;
 import java.io.IOException;
 import java.util.Optional;
 
-public class NatureHandler extends SingleArgumentDexHandler {
+public class NatureHandler extends DexSingleArgumentHandler
+{
 
     private final NameCache natureIds_;
     private final DynamicPokeApi client_;

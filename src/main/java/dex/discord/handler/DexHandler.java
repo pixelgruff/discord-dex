@@ -27,7 +27,7 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-public class DexHandler extends SingleArgumentDexHandler
+public class DexHandler extends DexSingleArgumentHandler
 {
     private static final Joiner OR_JOINER = Joiner.on(", or ");
 
@@ -72,7 +72,7 @@ public class DexHandler extends SingleArgumentDexHandler
                     PrintingUtils.properNoun(name)));
 
             // Suggest a name if the lookup failed
-            final Collection<String> suggestions = suggestedNames(name);
+            final Collection<String> suggestions = speciesNameSuggester_.suggest(name);
             if (!suggestions.isEmpty()) {
                 noIdResponseBuilder.append(
                         String.format("  Did you mean %s?", OR_JOINER.join(
@@ -106,11 +106,7 @@ public class DexHandler extends SingleArgumentDexHandler
         return responder;
     }
 
-    private Collection<String> suggestedNames(final String wrongName)
-    {
-        return speciesNameSuggester_.suggest(wrongName);
-    }
-
+    // TODO: Use PrintingUtils::englishName for difficult-to-print objects
     private Responder addPokemonData(final Responder responder, final PokemonSpecies species)
     {
         final String name = species.getName();

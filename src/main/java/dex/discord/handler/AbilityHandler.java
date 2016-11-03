@@ -18,7 +18,7 @@ import sx.blah.discord.util.RateLimitException;
 import java.io.IOException;
 import java.util.Optional;
 
-public class AbilityHandler extends SingleArgumentDexHandler
+public class AbilityHandler extends DexSingleArgumentHandler
 {
     private final NameCache abilityIds_;
     private final DynamicPokeApi client_;

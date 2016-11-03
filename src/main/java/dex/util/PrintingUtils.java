@@ -1,6 +1,7 @@
 package dex.util;
 
 import com.google.common.base.Joiner;
+import me.sargunvohra.lib.pokekotlin.model.Name;
 import me.sargunvohra.lib.pokekotlin.model.PokemonType;
 import org.apache.commons.lang3.StringUtils;
 import sx.blah.discord.util.MessageBuilder;
@@ -72,5 +73,14 @@ public class PrintingUtils
         return SLASH_JOINER.join(types.stream()
                 .map(type -> properNoun(type.getType().getName()))
                 .collect(Collectors.toList()));
+    }
+
+    public static Name englishName(final List<Name> names)
+    {
+        return names.stream()
+                .filter(name -> ParsingUtils.isEnglish(name.getLanguage()))
+                .findFirst()
+                .orElseThrow(ThrowableUtils.fail("Could not find an English name in any of the provided names %s!",
+                        names));
     }
 }

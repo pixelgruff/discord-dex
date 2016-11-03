@@ -11,6 +11,7 @@ public enum DexCommand
     dex,
     nature,
     ability,
+    type,
     delete,
     ket;
 

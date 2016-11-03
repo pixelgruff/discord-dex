@@ -28,10 +28,11 @@ public class DiscordDex
     // TODO: Move cache initialization to somewhere in main()
     private static final PokeApi POKEMON_CLIENT = new PokeApiClient();
     private static final DynamicPokeApi DYNAMIC_CLIENT = DynamicPokeApi.wrap(POKEMON_CLIENT,
-            PokemonSpecies.class, Pokemon.class, EvolutionChain.class, Nature.class, Ability.class);
+            PokemonSpecies.class, Pokemon.class, EvolutionChain.class, Nature.class, Ability.class, Type.class);
     private static final NameCache NATURE_ID_CACHE = NameCache.initializeCache(POKEMON_CLIENT::getNatureList);
     private static final NameCache SPECIES_ID_CACHE = NameCache.initializeCache(POKEMON_CLIENT::getPokemonSpeciesList);
     private static final NameCache ABILITY_ID_CACHE = NameCache.initializeCache(POKEMON_CLIENT::getAbilityList);
+    private static final NameCache TYPE_ID_CACHE = NameCache.initializeCache(POKEMON_CLIENT::getTypeList);
 
     // Wire up bot logic
     private static final Map<DexCommand, Handler> COMMAND_RESPONSES =
@@ -40,6 +41,7 @@ public class DiscordDex
                     .put(DexCommand.nature, new NatureHandler(DYNAMIC_CLIENT, NATURE_ID_CACHE))
                     .put(DexCommand.dex, new DexHandler(DYNAMIC_CLIENT, SPECIES_ID_CACHE))
                     .put(DexCommand.ability, new AbilityHandler(DYNAMIC_CLIENT, ABILITY_ID_CACHE))
+                    .put(DexCommand.type, new TypeHandler(DYNAMIC_CLIENT,TYPE_ID_CACHE))
                     .put(DexCommand.delete, new DeleteHandler())
                     .put(DexCommand.ket, new KetHandler())
                     .build();

@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 /**
  * Handle a single-argument {@link dex.discord.DexCommand command}
  */
-public abstract class SingleArgumentDexHandler extends Handler
+public abstract class DexSingleArgumentHandler extends Handler
 {
     private static final List<String> UNHAPPY_REPLIES = Stream.of(
             "AAAAAAAUGH",
@@ -39,7 +39,7 @@ public abstract class SingleArgumentDexHandler extends Handler
 
     private final DexCommand command_;
 
-    SingleArgumentDexHandler(final DexCommand command)
+    DexSingleArgumentHandler(final DexCommand command)
     {
         Validate.notNull(command, "Cannot construct a handler for a null command!");
         command_ = command;

@@ -15,6 +15,8 @@ import java.util.Collections;
  */
 public class SpellingSuggester
 {
+    private static final int DEFAULT_SUGGESTION_LIMIT = 10;
+
     private final ImmutableSet<String> dictionary_;
 
     public SpellingSuggester(final Collection<String> dictionary)
@@ -25,7 +27,7 @@ public class SpellingSuggester
 
     public Collection<String> suggest(final String input)
     {
-        return suggest(input, input.length() - 1, 10);
+        return suggest(input, input.length() - 1, DEFAULT_SUGGESTION_LIMIT);
     }
 
     public Collection<String> suggest(final String input, final int maximumDistance, final int maximumResponses)

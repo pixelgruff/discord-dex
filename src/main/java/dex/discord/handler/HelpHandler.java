@@ -65,6 +65,9 @@ public class HelpHandler extends Handler
             case ability:
                 return "usage: `!ability [ability name]`\n" +
                         "Example: `!ability Pickpocket`";
+            case type:
+                return "usage: `!type [type name]`\n" +
+                        "Example: `!type Dark`";
             case delete:
                 return "usage: `!delete [limit]`\n" +
                         "Example: `!delete 10`\n" +
