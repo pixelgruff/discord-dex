@@ -12,6 +12,7 @@ public enum DexCommand
     nature,
     ability,
     type,
+    move,
     delete,
     ket;
 

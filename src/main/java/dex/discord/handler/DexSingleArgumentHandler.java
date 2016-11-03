@@ -56,7 +56,7 @@ public abstract class DexSingleArgumentHandler extends Handler
             final String parseFailResponse = String.format("%s\n%s",
                     IterableUtils.randomFrom(UNHAPPY_REPLIES),
                     HelpHandler.helpResponse(command_));
-            event.getMessage().reply(parseFailResponse);
+            event.getMessage().getChannel().sendMessage(parseFailResponse);
             return;
         }
 

@@ -68,6 +68,9 @@ public class HelpHandler extends Handler
             case type:
                 return "usage: `!type [type name]`\n" +
                         "Example: `!type Dark`";
+            case move:
+                return "usage: `!move [move name]`\n" +
+                        "Example: `!move Slash`";
             case delete:
                 return "usage: `!delete [limit]`\n" +
                         "Example: `!delete 10`\n" +
