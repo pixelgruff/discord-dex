@@ -3,6 +3,7 @@ package dex.discord.handler;
 import com.google.common.base.Joiner;
 import dex.discord.DexCommand;
 import dex.util.ParsingUtils;
+import dex.util.ThrowableUtils;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
@@ -37,7 +38,7 @@ public class HelpHandler extends Handler
         if (arguments.isEmpty()) {
             reply = STANDARD_HELP;
         } else {
-            final Optional<DexCommand> maybeCommand = DexCommand.optionalValueOf(arguments.get(0));
+            final Optional<DexCommand> maybeCommand = DexCommand.fuzzyMatch(arguments.get(0));
             if (maybeCommand.isPresent()) {
                 reply = helpResponse(maybeCommand.get());
             } else {
@@ -71,6 +72,11 @@ public class HelpHandler extends Handler
             case move:
                 return "usage: `!move [move name]`\n" +
                         "Example: `!move Slash`";
+            case wtp:
+                final String alternateNames = COMMA_JOINER.join(DexCommand.alternateNames(DexCommand.wtp));
+                return String.format("usage: `!%s`\n" +
+                        "This will start up a game of \"Who's That Pokemon?\"",
+                        alternateNames);
             case delete:
                 return "usage: `!delete [limit]`\n" +
                         "Example: `!delete 10`\n" +
