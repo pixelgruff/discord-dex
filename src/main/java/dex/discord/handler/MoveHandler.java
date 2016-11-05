@@ -1,6 +1,5 @@
 package dex.discord.handler;
 
-import com.google.common.base.Joiner;
 import dex.discord.DexCommand;
 import dex.discord.respond.Responder;
 import dex.pokemon.DynamicPokeApi;
@@ -22,8 +21,6 @@ import java.util.Optional;
 
 public class MoveHandler extends DexLookupHandler
 {
-    private static final Joiner AND_JOINER = Joiner.on(", ");
-
     public MoveHandler(final DynamicPokeApi client, final NameCache typeIds)
     {
         super(DexCommand.move, client, typeIds);
@@ -62,7 +59,7 @@ public class MoveHandler extends DexLookupHandler
         final StringBuilder replyBuilder = new StringBuilder();
 
         if (isStatusMove(move)) {
-            replyBuilder.append(String.format("%s is a %s-type, %s-class move with  %02d%% accuracy and %d PP.",
+            replyBuilder.append(String.format("%s is a %s-type, %s-class move with %2d%% accuracy and %d PP.",
                     moveName, PrintingUtils.properNoun(move.getType().getName()), move.getDamageClass().getName(),
                     move.getAccuracy(), move.getPp()));
         } else {
