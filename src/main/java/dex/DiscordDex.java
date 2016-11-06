@@ -56,7 +56,7 @@ public class DiscordDex
                         .put(DexCommand.ability, new AbilityHandler(DYNAMIC_CLIENT, ABILITY_ID_CACHE))
                         .put(DexCommand.type, new TypeHandler(DYNAMIC_CLIENT, TYPE_ID_CACHE))
                         .put(DexCommand.move, new MoveHandler(DYNAMIC_CLIENT, MOVE_ID_CACHE))
-                        .put(DexCommand.wtp, new WtpHandler(client))
+                        .put(DexCommand.wtp, new WtpHandler(client, DYNAMIC_CLIENT, SPECIES_ID_CACHE))
                         .put(DexCommand.delete, new DeleteHandler())
                         .put(DexCommand.ket, new KetHandler())
                         .build();

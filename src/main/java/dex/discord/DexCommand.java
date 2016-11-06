@@ -2,11 +2,10 @@ package dex.discord;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
-import org.apache.commons.lang3.StringUtils;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Lower-case enums are used to allow case-sensitive matching against String input
@@ -47,7 +46,7 @@ public enum DexCommand
         // Otherwise try matching any of the alternate names
         else {
             for (final Map.Entry<DexCommand, String> entry : alternateNames_.entries()) {
-                if (StringUtils.equalsIgnoreCase(entry.getValue(), name)) {
+                if (entry.getValue().equalsIgnoreCase(name)) {
                     return Optional.of(entry.getKey());
                 }
             }
@@ -58,5 +57,14 @@ public enum DexCommand
     public static Collection<String> alternateNames(final DexCommand command)
     {
         return alternateNames_.get(command);
+    }
+
+    public static Collection<String> allNames()
+    {
+        final List<String> standardNames = Arrays.stream(DexCommand.values())
+                .map(value -> value.name())
+                .collect(Collectors.toList());
+        final Collection<String> alternateNames = alternateNames_.values();
+        return Stream.concat(standardNames.stream(), alternateNames.stream()).collect(Collectors.toList());
     }
 }
