@@ -36,29 +36,32 @@ public class DiscordDex
     private static final NameCache TYPE_ID_CACHE = NameCache.initializeCache(POKEMON_CLIENT::getTypeList);
     private static final NameCache MOVE_ID_CACHE = NameCache.initializeCache(POKEMON_CLIENT::getMoveList);
 
-    // Wire up bot logic
-    private static final Map<DexCommand, Handler> COMMAND_RESPONSES =
-            ImmutableMap.<DexCommand, Handler>builder()
-                    .put(DexCommand.help, new HelpHandler())
-                    .put(DexCommand.nature, new NatureHandler(DYNAMIC_CLIENT, NATURE_ID_CACHE))
-                    .put(DexCommand.dex, new DexHandler(DYNAMIC_CLIENT, SPECIES_ID_CACHE))
-                    .put(DexCommand.ability, new AbilityHandler(DYNAMIC_CLIENT, ABILITY_ID_CACHE))
-                    .put(DexCommand.type, new TypeHandler(DYNAMIC_CLIENT, TYPE_ID_CACHE))
-                    .put(DexCommand.move, new MoveHandler(DYNAMIC_CLIENT, MOVE_ID_CACHE))
-                    .put(DexCommand.delete, new DeleteHandler())
-                    .put(DexCommand.ket, new KetHandler())
-                    .build();
-    private static final DexListener DEX_LISTENER = new DexListener(COMMAND_RESPONSES);
-
     public static void main(final String[] args) {
         LOG.info("discord-dex is starting up...");
+
+        final IDiscordClient client;
         try {
-            final IDiscordClient client = getClient(DEX_BOT_TOKEN, true);
+            client = getClient(DEX_BOT_TOKEN, true);
             LOG.info("Got client with token: {}", DEX_BOT_TOKEN);
-            client.getDispatcher().registerListener(DEX_LISTENER);
         } catch (DiscordException e) {
             throw new RuntimeException("Couldn't get a Discord client!", e);
         }
+
+        // Wire up bot logic
+        final Map<DexCommand, Handler> commandResponses =
+                ImmutableMap.<DexCommand, Handler>builder()
+                        .put(DexCommand.help, new HelpHandler())
+                        .put(DexCommand.nature, new NatureHandler(DYNAMIC_CLIENT, NATURE_ID_CACHE))
+                        .put(DexCommand.dex, new DexHandler(DYNAMIC_CLIENT, SPECIES_ID_CACHE))
+                        .put(DexCommand.ability, new AbilityHandler(DYNAMIC_CLIENT, ABILITY_ID_CACHE))
+                        .put(DexCommand.type, new TypeHandler(DYNAMIC_CLIENT, TYPE_ID_CACHE))
+                        .put(DexCommand.move, new MoveHandler(DYNAMIC_CLIENT, MOVE_ID_CACHE))
+                        .put(DexCommand.wtp, new WtpHandler(client, DYNAMIC_CLIENT, SPECIES_ID_CACHE))
+                        .put(DexCommand.delete, new DeleteHandler())
+                        .put(DexCommand.ket, new KetHandler())
+                        .build();
+        final DexListener dexListener = new DexListener(commandResponses);
+        client.getDispatcher().registerListener(dexListener);
     }
 
     private static IDiscordClient getClient(final String token, final boolean login) throws DiscordException

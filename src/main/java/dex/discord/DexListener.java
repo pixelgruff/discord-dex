@@ -26,7 +26,7 @@ public class DexListener implements IListener<MessageReceivedEvent>
     // Matches commands in the format: /command
     // http://regexr.com/3eeuc
     private static final String COMMAND_PATTERN = String.format("^!\\b(%s)",
-            PIPE_JOINER.join(DexCommand.values())
+            PIPE_JOINER.join(DexCommand.allNames())
     );
     private static final Pattern COMMAND_MATCHER = Pattern.compile(COMMAND_PATTERN);
 
@@ -75,7 +75,7 @@ public class DexListener implements IListener<MessageReceivedEvent>
         // Otherwise return the appropriate command
         try {
             final String commandWord = ParsingUtils.getCommandWord(command);
-            return Optional.of(DexCommand.valueOf(commandWord));
+            return DexCommand.fuzzyMatch(commandWord);
         } catch (IllegalArgumentException e) {
             LOG.info("Could not match command {} to any commands in {}", command, Arrays.toString(DexCommand.values()));
             return Optional.empty();
