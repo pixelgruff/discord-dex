@@ -25,7 +25,6 @@ public abstract class Handler
         // Gotta catch 'em all
         catch (Exception e) {
             LOG.error("Was not able to respond to message \"{}\"!", event.getMessage().getContent(), e);
-            DiscordUtils.trySendMessage(event.getMessage().getChannel(), DiscordUtils.getUnhappyReply());
         }
     }
 

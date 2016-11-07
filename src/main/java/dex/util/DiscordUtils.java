@@ -2,7 +2,6 @@ package dex.util;
 
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.util.DiscordException;
-import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
 
@@ -28,7 +27,16 @@ public class DiscordUtils
     public static void uncheckedSendFile(final IChannel channel, final InputStream stream, final String message)
     {
         try {
-            channel.sendFile(stream, "guess-who.png", message);
+            channel.sendFile(stream, "image.png", message);
+        } catch (MissingPermissionsException | RateLimitException | DiscordException | IOException e) {
+            throw ThrowableUtils.toUnchecked(e);
+        }
+    }
+
+    public static void uncheckedSendFile(final IChannel channel, final InputStream stream)
+    {
+        try {
+            channel.sendFile(stream, "image.png");
         } catch (MissingPermissionsException | RateLimitException | DiscordException | IOException e) {
             throw ThrowableUtils.toUnchecked(e);
         }

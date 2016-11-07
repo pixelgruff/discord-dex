@@ -14,6 +14,7 @@ public enum DexCommand
 {
     help,
     dex,
+    art,
     nature,
     ability,
     type,
@@ -25,6 +26,7 @@ public enum DexCommand
     private static Multimap<DexCommand, String> alternateNames_ = ImmutableMultimap.<DexCommand, String>builder()
             .put(wtp, "who's-that-pokemon")
             .put(wtp, "whos-that-pokemon")
+            .put(art, "official-art")
             .build();
 
     public static Optional<DexCommand> optionalValueOf(final String name)

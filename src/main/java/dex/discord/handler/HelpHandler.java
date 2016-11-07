@@ -63,6 +63,9 @@ public class HelpHandler extends Handler
             case dex:
                 return "usage: `!dex [pokemon name]`\n" +
                         "Example: `!dex Sneasel`";
+            case art:
+                return "usage: `!art [pokemon name]`\n" +
+                        "Example: `!art Sneasel`";
             case ability:
                 return "usage: `!ability [ability name]`\n" +
                         "Example: `!ability Pickpocket`";

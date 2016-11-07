@@ -51,6 +51,7 @@ public class DiscordDex
         final Map<DexCommand, Handler> commandResponses =
                 ImmutableMap.<DexCommand, Handler>builder()
                         .put(DexCommand.help, new HelpHandler())
+                        .put(DexCommand.art, new ArtHandler(SPECIES_ID_CACHE))
                         .put(DexCommand.nature, new NatureHandler(DYNAMIC_CLIENT, NATURE_ID_CACHE))
                         .put(DexCommand.dex, new DexHandler(DYNAMIC_CLIENT, SPECIES_ID_CACHE))
                         .put(DexCommand.ability, new AbilityHandler(DYNAMIC_CLIENT, ABILITY_ID_CACHE))
