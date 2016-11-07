@@ -21,7 +21,7 @@ public class EvolutionUtils
     public static List<ChainLink> getFutureEvolution(final EvolutionChain chain, final String name)
     {
         final Optional<ChainLink> maybeCurrentEvolution = getMatchingEvolution(chain.getChain(),
-                link -> link.getSpecies().getName().equals(name));
+                link -> link.getSpecies().getName().equalsIgnoreCase(name));
         Validate.isTrue(maybeCurrentEvolution.isPresent(), String.format(
                 "Could not find %s in the evolution chain starting with %s!", name, chain.getChain()));
         return maybeCurrentEvolution.get().getEvolvesTo();
@@ -41,7 +41,7 @@ public class EvolutionUtils
     {
         for (final ChainLink evolvedLink : baseLink.getEvolvesTo()) {
             // Check if an evolution of this stage has the name we're matching against
-            if (evolvedLink.getSpecies().getName().equals(name)) {
+            if (evolvedLink.getSpecies().getName().equalsIgnoreCase(name)) {
                 return baseLink;
             }
             // Continue the search on the next layer

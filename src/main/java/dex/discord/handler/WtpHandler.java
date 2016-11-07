@@ -3,9 +3,7 @@ package dex.discord.handler;
 import dex.discord.respond.TypingStatus;
 import dex.pokemon.DynamicPokeApi;
 import dex.pokemon.NameCache;
-import dex.util.PrintingUtils;
-import dex.util.SpellingSuggester;
-import dex.util.ThrowableUtils;
+import dex.util.*;
 import me.sargunvohra.lib.pokekotlin.model.PokemonSpecies;
 import org.apache.commons.lang3.Validate;
 import sx.blah.discord.api.IDiscordClient;
@@ -18,9 +16,6 @@ import sx.blah.discord.util.RateLimitException;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.WritableRaster;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
@@ -114,7 +109,7 @@ public class WtpHandler extends Handler
                 final Optional<String> maybeSuggestion = speciesSuggester_.suggest(content, 3, 1).stream()
                         .findAny();
                 if (maybeSuggestion.isPresent()) {
-                    uncheckedSendMessage(channel, String.format("Did you mean %s?",
+                    DiscordUtils.uncheckedSendMessage(channel, String.format("Did you mean %s?",
                             PrintingUtils.properNoun(maybeSuggestion.get())));
                 }
             }
@@ -125,7 +120,7 @@ public class WtpHandler extends Handler
     private static void sendChallenge(final IChannel channel, final PokemonSpecies pokemonSpecies)
     {
         try (final InputStream art = getPokemonOutline(pokemonSpecies)) {
-            uncheckedSendFile(channel, art, "Who's that Pokemon?");
+            DiscordUtils.uncheckedSendFile(channel, art, "Who's that Pokemon?");
         } catch (IOException e) {
             throw ThrowableUtils.toUnchecked(e);
         }
@@ -134,26 +129,8 @@ public class WtpHandler extends Handler
     private void sendArt(final IChannel channel, final PokemonSpecies pokemonSpecies, final String message)
     {
         try (final InputStream art = getPokemonArt(pokemonSpecies)) {
-            uncheckedSendFile(channel, art, message);
+            DiscordUtils.uncheckedSendFile(channel, art, message);
         } catch (IOException e) {
-            throw ThrowableUtils.toUnchecked(e);
-        }
-    }
-
-    private static void uncheckedSendFile(final IChannel channel, final InputStream stream, final String message)
-    {
-        try {
-            channel.sendFile(stream, "guess-who.png", message);
-        } catch (MissingPermissionsException | RateLimitException | DiscordException | IOException e) {
-            throw ThrowableUtils.toUnchecked(e);
-        }
-    }
-
-    private static void uncheckedSendMessage(final IChannel channel, final String message)
-    {
-        try {
-            channel.sendMessage(message);
-        } catch (MissingPermissionsException | RateLimitException | DiscordException e) {
             throw ThrowableUtils.toUnchecked(e);
         }
     }
@@ -170,35 +147,11 @@ public class WtpHandler extends Handler
         try (final InputStream art = getPokemonArt(pokemonSpecies)) {
             // Black out all colored pixels
             final BufferedImage image = ImageIO.read(art);
-            colorImage(image, Color.white);
-            return toInputStream(image);
+            ImageUtils.colorImage(image, Color.white);
+            return ImageUtils.toPngInputStream(image);
 
         } catch (IOException e) {
             throw ThrowableUtils.toUnchecked(e);
         }
-    }
-
-    private static BufferedImage colorImage(final BufferedImage image, final Color color) {
-        int width = image.getWidth();
-        int height = image.getHeight();
-        WritableRaster raster = image.getRaster();
-
-        for (int xx = 0; xx < width; xx++) {
-            for (int yy = 0; yy < height; yy++) {
-                int[] pixels = raster.getPixel(xx, yy, (int[]) null);
-                pixels[0] = color.getRed();
-                pixels[1] = color.getGreen();
-                pixels[2] = color.getBlue();
-                raster.setPixel(xx, yy, pixels);
-            }
-        }
-        return image;
-    }
-
-    private static InputStream toInputStream(final BufferedImage image) throws IOException
-    {
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        ImageIO.write(image, "png", os);
-        return new ByteArrayInputStream(os.toByteArray());
     }
 }

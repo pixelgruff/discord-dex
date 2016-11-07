@@ -5,9 +5,7 @@ import dex.discord.DexCommand;
 import dex.discord.respond.Responder;
 import dex.pokemon.DynamicPokeApi;
 import dex.pokemon.NameCache;
-import dex.util.EvolutionUtils;
-import dex.util.PrintingUtils;
-import dex.util.SpellingSuggester;
+import dex.util.*;
 import me.sargunvohra.lib.pokekotlin.model.ChainLink;
 import me.sargunvohra.lib.pokekotlin.model.EvolutionChain;
 import me.sargunvohra.lib.pokekotlin.model.Pokemon;
@@ -19,13 +17,18 @@ import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DexHandler extends DexSingleArgumentHandler
 {
@@ -63,22 +66,22 @@ public class DexHandler extends DexSingleArgumentHandler
 
     private Responder generateResponder(MessageReceivedEvent event, final String name)
     {
-    // Construct response
+        // Construct response
         final Optional<Integer> maybeId = speciesIds_.getId(name);
         if (!maybeId.isPresent()) {
             final StringBuilder noIdResponseBuilder = new StringBuilder();
             noIdResponseBuilder.append(
                     String.format("I'm sorry.  I couldn't find %s in my list of Pokemon species.",
-                    PrintingUtils.properNoun(name)));
+                            PrintingUtils.properNoun(name)));
 
             // Suggest a name if the lookup failed
             final Collection<String> suggestions = speciesNameSuggester_.suggest(name);
             if (!suggestions.isEmpty()) {
                 noIdResponseBuilder.append(
                         String.format("  Did you mean %s?", OR_JOINER.join(
-                        suggestions.stream()
-                                .map(PrintingUtils::firstUppercase)
-                                .collect(Collectors.toList()))));
+                                suggestions.stream()
+                                        .map(PrintingUtils::firstUppercase)
+                                        .collect(Collectors.toList()))));
             }
 
             return Responder.simpleResponder(event, noIdResponseBuilder.toString());
@@ -106,10 +109,9 @@ public class DexHandler extends DexSingleArgumentHandler
         return responder;
     }
 
-    // TODO: Use PrintingUtils::englishName for difficult-to-print objects
     private Responder addPokemonData(final Responder responder, final PokemonSpecies species)
     {
-        final String name = species.getName();
+        final String name = PrintingUtils.englishName(species.getNames()).getName();
         LOG.info("Adding Pokemon data for {}.", name);
 
         final int pokemonId = species.getId();
@@ -121,12 +123,13 @@ public class DexHandler extends DexSingleArgumentHandler
         }
 
         final Pokemon pokemon = maybePokemon.get();
+        // Add sprites
+        responder.addImage(getPokemonSprites(pokemon));
 
         // TODO: separate 'type' and 'ability' additions
-        final String typeMessage = String.format("%s is type %s.", PrintingUtils.properNoun(name),
+        final String typeMessage = String.format("%s is type %s.", name,
                 PrintingUtils.prettifiedTypes(pokemon.getTypes()));
         responder.addResponse(PrintingUtils.style(typeMessage, MessageBuilder.Styles.CODE));
-        responder.addImageUrl(pokemon.getSprites().getFrontDefault());
 
         final List<String> abilityDescriptions = pokemon.getAbilities().stream()
                 .map(ability -> ability.isHidden() ?
@@ -135,7 +138,7 @@ public class DexHandler extends DexSingleArgumentHandler
                         PrintingUtils.properNoun(ability.getAbility().getName()))
                 .collect(Collectors.toList());
         final String abilityMessage = String.format("%s has the ability: %s.",
-                PrintingUtils.properNoun(name), OR_JOINER.join(abilityDescriptions));
+                name, OR_JOINER.join(abilityDescriptions));
         responder.addResponse(PrintingUtils.style(abilityMessage, MessageBuilder.Styles.CODE));
 
         return responder;
@@ -143,7 +146,7 @@ public class DexHandler extends DexSingleArgumentHandler
 
     private Responder addEvolutionData(final Responder responder, final PokemonSpecies species)
     {
-        final String name = species.getName();
+        final String name = PrintingUtils.englishName(species.getNames()).getName();
         LOG.info("Adding evolution data for {}.", name);
 
         final int chainId = species.getEvolutionChain().getId();
@@ -185,5 +188,25 @@ public class DexHandler extends DexSingleArgumentHandler
 
         responder.addResponse(PrintingUtils.style(responseBuilder.toString(), MessageBuilder.Styles.CODE));
         return responder;
+    }
+
+    private BufferedImage getPokemonSprites(final Pokemon pokemon)
+    {
+        final List<BufferedImage> sprites = Stream.of(
+                pokemon.getSprites().getFrontDefault(),
+                pokemon.getSprites().getFrontFemale(),
+                pokemon.getSprites().getFrontShiny())
+                .filter(url -> url != null)
+                .map(url -> {
+                    try {
+                        final InputStream stream = new URL(url).openStream();
+                        return ImageIO.read(stream);
+                    } catch (IOException e) {
+                        throw ThrowableUtils.toUnchecked(e);
+                    }
+                })
+                .collect(Collectors.toList());
+
+        return ImageUtils.combine(sprites);
     }
 }

@@ -2,6 +2,7 @@ package dex.discord.handler;
 
 import dex.discord.DexCommand;
 import dex.discord.respond.TypingStatus;
+import dex.util.DiscordUtils;
 import dex.util.ParsingUtils;
 import dex.util.PrintingUtils;
 import dex.util.IterableUtils;
@@ -22,21 +23,6 @@ import java.util.stream.Stream;
  */
 public abstract class DexSingleArgumentHandler extends Handler
 {
-    private static final List<String> UNHAPPY_REPLIES = Stream.of(
-            "AAAAAAAUGH",
-            "AAAAAUGH",
-            "AAAUGH",
-            "AUGH",
-            "UGH",
-            "NO, NO, NO, NO, NO",
-            "Y-- NO!  NO",
-            "NO",
-            "NOPE",
-            "WHYYYY",
-            "WHY?")
-            .map(s -> PrintingUtils.style(s, MessageBuilder.Styles.BOLD))
-            .collect(Collectors.toList());
-
     private final DexCommand command_;
 
     DexSingleArgumentHandler(final DexCommand command)
@@ -54,7 +40,7 @@ public abstract class DexSingleArgumentHandler extends Handler
             argument = ParsingUtils.parseFirstArgument(event.getMessage().getContent());
         } catch (Exception e) {
             final String parseFailResponse = String.format("%s\n%s",
-                    IterableUtils.randomFrom(UNHAPPY_REPLIES),
+                    DiscordUtils.getUnhappyReply(),
                     HelpHandler.helpResponse(command_));
             event.getMessage().getChannel().sendMessage(parseFailResponse);
             return;

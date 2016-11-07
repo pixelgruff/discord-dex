@@ -1,5 +1,6 @@
 package dex.discord.handler;
 
+import dex.util.DiscordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
@@ -24,6 +25,7 @@ public abstract class Handler
         // Gotta catch 'em all
         catch (Exception e) {
             LOG.error("Was not able to respond to message \"{}\"!", event.getMessage().getContent(), e);
+            DiscordUtils.trySendMessage(event.getMessage().getChannel(), DiscordUtils.getUnhappyReply());
         }
     }
 

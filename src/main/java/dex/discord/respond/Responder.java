@@ -1,17 +1,18 @@
 package dex.discord.respond;
 
 import com.google.common.base.Joiner;
+import dex.util.ImageUtils;
 import org.apache.commons.lang3.Validate;
 import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.util.DiscordException;
 import sx.blah.discord.util.MissingPermissionsException;
 import sx.blah.discord.util.RateLimitException;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 // TODO: Images and text require separate APIs to respond to Discord, but it'd be much nicer to abstract all that away and make more generically composable responses!
@@ -23,6 +24,7 @@ public class Responder
 
     private final List<String> responses_ = new ArrayList<>();
     private final List<String> imageUrls_ = new ArrayList<>();
+    private final List<BufferedImage> images_ = new ArrayList<>();
     private boolean complete_ = false;
 
     public Responder(final MessageReceivedEvent trigger)
@@ -42,35 +44,29 @@ public class Responder
     public void respond() throws IOException, RateLimitException, DiscordException, MissingPermissionsException
     {
         final String response = NEWLINE_JOINER.join(responses_);
+        trigger_.getMessage().getChannel().sendMessage(response);
 
-        if (imageUrls_.isEmpty()) {
-            trigger_.getMessage().getChannel().sendMessage(response);
-        } else {
-            final Iterator<String> iterator = imageUrls_.iterator();
-            sendImage(iterator.next(), response);
+        for (final String imageUrl : imageUrls_) {
+            sendImage(imageUrl);
+        }
 
-            // Send all remaining messages
-            while (iterator.hasNext()) {
-                sendImage(iterator.next());
-            }
+        for (final BufferedImage image : images_) {
+            sendImage(image);
         }
     }
 
-    private void sendImage(final String address, final String message)
-            throws IOException, RateLimitException, DiscordException, MissingPermissionsException
-    {
-        final URL url = new URL(address);
-        try (final InputStream stream = url.openStream()) {
-            trigger_.getMessage().getChannel().sendFile(stream, url.getFile(), message);
-        }
-    }
-
-    private void sendImage(final String address)
-            throws IOException, RateLimitException, DiscordException, MissingPermissionsException
+    private void sendImage(final String address) throws IOException, RateLimitException, DiscordException, MissingPermissionsException
     {
         final URL url = new URL(address);
         try (final InputStream stream = url.openStream()) {
             trigger_.getMessage().getChannel().sendFile(stream, url.getFile());
+        }
+    }
+
+    private void sendImage(final BufferedImage image) throws IOException, RateLimitException, DiscordException, MissingPermissionsException
+    {
+        try (final InputStream stream = ImageUtils.toPngInputStream(image)) {
+            trigger_.getMessage().getChannel().sendFile(stream, "image.png");
         }
     }
 
@@ -86,6 +82,13 @@ public class Responder
         Validate.isTrue(!isComplete(), "Cannot modify a Responder marked as completed!");
         Validate.notNull(url);
         imageUrls_.add(url);
+    }
+
+    public void addImage(final BufferedImage image)
+    {
+        Validate.isTrue(!isComplete(), "Cannot modify a Responder marked as completed!");
+        Validate.notNull(image);
+        images_.add(image);
     }
 
     public MessageReceivedEvent getTrigger()
