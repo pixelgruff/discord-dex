@@ -109,8 +109,10 @@ public class TypeHandler extends DexLookupHandler
         final String typeName = PrintingUtils.englishName(type.getNames()).getName();
         replyBuilder.append(String.format("There are %d %s-type Pokemon and %d %s-type moves.",
                 type.getPokemon().size(), typeName, type.getMoves().size(), typeName));
-        replyBuilder.append(String.format("\n%s attacks are generally %s-type.",
-                typeName, type.getMoveDamageClass().getName()));
+        if (type.getMoveDamageClass() != null) {
+            replyBuilder.append(String.format("\n%s attacks are generally %s-type.",
+                    typeName, type.getMoveDamageClass().getName()));
+        }
 
         final String info = PrintingUtils.style(replyBuilder.toString(), MessageBuilder.Styles.CODE);
         responder.addResponse(info);

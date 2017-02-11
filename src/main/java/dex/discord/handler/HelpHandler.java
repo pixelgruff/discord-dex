@@ -77,7 +77,7 @@ public class HelpHandler extends Handler
                         "Example: `!move Slash`";
             case wtp:
                 final String alternateNames = COMMA_JOINER.join(DexCommand.alternateNames(DexCommand.wtp));
-                return String.format("usage: `!%s`\n" +
+                return String.format("usage: `!%s [time limit]`\n" +
                         "This will start up a game of \"Who's That Pokemon?\"",
                         alternateNames);
             case delete:

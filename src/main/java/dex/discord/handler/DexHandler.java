@@ -144,9 +144,10 @@ public class DexHandler extends DexSingleArgumentHandler
         return responder;
     }
 
+    // TODO: EvolutionUtils should use IDs, not names
     private Responder addEvolutionData(final Responder responder, final PokemonSpecies species)
     {
-        final String name = PrintingUtils.englishName(species.getNames()).getName();
+        final String name = species.getName();
         LOG.info("Adding evolution data for {}.", name);
 
         final int chainId = species.getEvolutionChain().getId();

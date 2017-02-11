@@ -30,6 +30,7 @@ import java.util.function.Predicate;
 public class WtpHandler extends Handler
 {
     private static final int TIME_LIMIT_SECONDS = 10;
+    private static final int TIME_LIMIT_MAX = 180;
 
     private final IDiscordClient discordClient_;
     private final DynamicPokeApi pokemonClient_;
@@ -56,15 +57,23 @@ public class WtpHandler extends Handler
     {
         final IChannel channel = event.getMessage().getChannel();
 
+        final long timeLimit = Long.parseLong(ParsingUtils.getFirstArgument(event.getMessage().getContent())
+                .orElse(Long.toString(TIME_LIMIT_SECONDS)));
+        if (timeLimit > TIME_LIMIT_MAX) {
+            DiscordUtils.uncheckedSendMessage(event.getMessage().getChannel(), String.format(
+                    "Don't be ridiculous.  The maximum timeout is %d seconds.", TIME_LIMIT_MAX));
+            return;
+        }
+
         try (final TypingStatus typing = TypingStatus.start(channel)){
             final PokemonSpecies randomSpecies = pickRandomSpecies();
             final AtomicBoolean successFlag = new AtomicBoolean(false);
-            final long endTime = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(TIME_LIMIT_SECONDS);
+            final long endTime = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(timeLimit);
             sendChallenge(channel, randomSpecies);
             final Predicate<MessageReceivedEvent> listener = gameListenerFor(randomSpecies, successFlag, endTime);
             // Start the game and wait
-            discordClient_.getDispatcher().waitFor(listener, TIME_LIMIT_SECONDS, TimeUnit.SECONDS);
-            LOG.info("Closing a game of 'Who's that Pokemon?' after {} seconds.", TIME_LIMIT_SECONDS);
+            discordClient_.getDispatcher().waitFor(listener, timeLimit, TimeUnit.SECONDS);
+            LOG.info("Closing a game of 'Who's that Pokemon?' after {} seconds.", timeLimit);
 
             // Display the answer, if unguessed
             if (!successFlag.get()) {
